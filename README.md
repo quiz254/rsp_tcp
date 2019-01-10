@@ -1,6 +1,7 @@
 # rsp_tcp
 
 (c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3
+
 (c)2019 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR
