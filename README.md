@@ -14,7 +14,8 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 
 ## OPTIONS
 Usage:
-        -a listen address]
+
+        -a listen address
         
         -p listen port (default: 1234)
         
