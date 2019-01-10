@@ -1,7 +1,6 @@
 # rsp_tcp
 
 (c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3
-
 (c)2019 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR
@@ -14,19 +13,20 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 2. As it's opensource, you could compile it on any Linux server
 
 ## OPTIONS
-```
- -a listen address
- -p listen port (default: 1234)
- -d RSP device to use (default: 1, first found)
- -P Antenna Port select (0/1/2, default: 0, Port A)
- -T Bias-T enable (default: disabled)
- -N Broadcast Notch enable (default: disabled)
- -R Refclk output enable (default: disabled)
- -f frequency to tune to [Hz]
- -s samplerate in Hz (default: 2048000 Hz)
- -n max number of linked list buffers to keep (default: 500)
- -v Verbose output (debug) enable (default: disabled)
-```
+Usage:	[-a listen address]
+	[-p listen port (default: 1234)]
+	[-d RSP device to use (default: 1, first found)]
+	[-P Antenna Port select* (0/1/2, default: 0, Port A)]
+	[-g Gain control (default: 20  / values 0 upto 78)]
+	[-L Low Noise Amplifier* (default: disabled)]
+	[-T Bias-T enable* (default: disabled)]
+	[-N Broadcast Notch enable* (default: disabled)]
+	[-R Refclk output enable* (default: disabled)]
+	[-f frequency to tune to [Hz]]
+	[-s samplerate in Hz (default: 2048000 Hz)]
+	[-n max number of linked list buffers to keep (default: 500)]
+	[-v Verbose output (debug) enable (default: disabled)]
+
 ## USAGE
  - RTL Tuner AGC is mapped to RSP RF AGC
  - RTL AGC is mapped to LNAState (RTL AGC on = LNA enabled)
@@ -54,11 +54,14 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 
 ## HISTORY
  - Version 0.1.0: Initial build
+ - Version 0.1.4: Added extra options Bas.
 
 ## Changes made by ON5HB
  - IfFreq now uses twice the bandwidth and decimate 2, so at 2048MHz wide it samples at 4096, this works with websdr.org software
  - Also for 2880MHz sampling width.
  - Added 6 MHz and above, not tested yet.
+ - Added Low Noise Apmlifier support
+ - Added gain support
 
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code

@@ -114,7 +114,7 @@ static volatile int do_exit = 0;
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -30
-#define DEFAULT_GAIN_REDUCTION 40
+#define DEFAULT_GAIN_REDUCTION 20
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
 
@@ -563,7 +563,7 @@ static void *command_worker(void *arg)
 
 void usage(void)
 {
-	printf("rsp_tcp, an I/Q spectrum server for SDRPlay receivers "
+	printf("rsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org "
 #ifdef SERVER_VERSION
 		"VERSION "SERVER_VERSION
 #endif
@@ -572,6 +572,8 @@ void usage(void)
 		"\t[-p listen port (default: 1234)]\n"
 		"\t[-d RSP device to use (default: 1, first found)]\n"
 		"\t[-P Antenna Port select* (0/1/2, default: 0, Port A)]\n"
+		"\t[-g Gain control (default: 20  / values 0 upto 78)]\n"
+		"\t[-L Low Noise Amplifier* (default: disabled)]\n"
 		"\t[-T Bias-T enable* (default: disabled)]\n"
 		"\t[-N Broadcast Notch enable* (default: disabled)]\n"
 		"\t[-R Refclk output enable* (default: disabled)]\n"
@@ -616,13 +618,16 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:f:s:n:d:P:TvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:g:f:s:n:d:P:LTvNR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
 			break;
 		case 'P':
 			antenna = atoi(optarg);
+			break;
+		case 'g':
+			gainReduction = atoi(optarg);
 			break;
 		case 'f':
 			frequency = (uint32_t)atofs(optarg);
@@ -638,6 +643,9 @@ int main(int argc, char **argv)
 			break;
 		case 'n':
 			llbuf_num = atoi(optarg);
+			break;
+		case 'L':
+			rspLNA = 1;
 			break;
 		case 'T':
 			enable_biastee = 1;
