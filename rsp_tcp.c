@@ -110,7 +110,7 @@ static int llbuf_num = 500;
 
 static volatile int do_exit = 0;
 
-#define MAX_DEVS 4
+#define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -30
@@ -386,19 +386,29 @@ static int set_sample_rate(uint32_t sr)
 	double f;
 	int deci = 1;
 
-	if (sr >= 2400000)
-	{
-		deci = 1;
-		bwType = mir_sdr_BW_5_000;
-	}
-	else if (sr >= 2000000)
-	{
-		deci = 1;
-		bwType = mir_sdr_BW_1_536;
-	}
+        if (sr >= 8000000)
+        {
+                deci = 1;
+                bwType = mir_sdr_BW_8_000;
+        }
+        else if (sr >= 6000000)
+        {
+                deci = 1;
+                bwType = mir_sdr_BW_6_000;
+        }
+        else if (sr >= 3200000)
+        {
+                deci = 2;
+                bwType = mir_sdr_BW_6_000;
+        }
+        else if (sr >= 2500000)
+        {
+                deci = 2;
+                bwType = mir_sdr_BW_5_000;
+        }
 	else if (sr >= 1800000)
 	{
-		deci = 2;
+		deci = 1;
 		bwType = mir_sdr_BW_1_536;
 	}
 	else if (sr >= 1000000)
@@ -434,7 +444,7 @@ static int set_sample_rate(uint32_t sr)
 	f = (double)sr * deci;
 
 	if (deci == 1)
-		mir_sdr_DecimateControl(0, 2, 0);
+		mir_sdr_DecimateControl(0, 2, 1);
 	else
 		mir_sdr_DecimateControl(1, deci, 0);
 

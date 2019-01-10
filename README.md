@@ -1,6 +1,7 @@
 # rsp_tcp
 
 (c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3
+(c)2019 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR
 
@@ -53,8 +54,14 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 ## HISTORY
  - Version 0.1.0: Initial build
 
+## Changes made by ON5HB
+ - IfFreq now uses twice the bandwidth and decimate 2, so at 2048MHz wide it samples at 4096, this works with websdr.org software
+ - Also for 2880MHz sampling width.
+ - Added 6 MHz and above, not tested yet.
+
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
  - [Thierry Leconte](https://github.com/TLeconte/airspy_tcp.git) for many ideas that I found in his Airspy port of rtl_tcp
  - [Tony Hoyle](https://github.com/TonyHoyle/sdrplay.git) for the initial idea
  - [Pothosware](https://github.com/pothosware) for the cmake build examples
+ - [Nicolas F4FHH] for creating the original code to work with rtl_tcp compatible software
