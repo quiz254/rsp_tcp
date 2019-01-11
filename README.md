@@ -36,7 +36,7 @@ Usage:
 	
 	[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]
 	
-        [-s samplerate in Hz (default: 2048000 Hz)]
+	[-s samplerate in Hz (default: 2048000 Hz)]
 	
 	[-n max number of linked list buffers to keep (default: 500)]
 	
