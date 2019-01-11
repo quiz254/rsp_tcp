@@ -584,6 +584,7 @@ void usage(void)
 		"\t[-f frequency to tune to [Hz]]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
 		"\t[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]\n"
+		"\t[-A Auto Gain Control (default: -30 / values 0 to -60)]\n"
 		"\t[-n max number of linked list buffers to keep (default: 500)]\n"
 		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
 	exit(1);
@@ -623,7 +624,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:g:f:s:n:d:P:D:LTvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:g:f:s:n:d:P:D:A:LTvNR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -643,7 +644,9 @@ int main(int argc, char **argv)
 		case 'D':
                         decimate = atoi(optarg);
                         break;
-
+		case 'A':
+                        agcSetPoint = atoi(optarg);
+                        break;
 		case 'a':
 			addr = optarg;
 			break;
