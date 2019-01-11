@@ -117,6 +117,7 @@ static volatile int do_exit = 0;
 #define DEFAULT_GAIN_REDUCTION 20
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
+#define DECIMATE_FACTOR 2
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -127,6 +128,7 @@ static int infoOverallGr;
 static int samples_per_packet;
 static int last_gain_idx = 0;
 static int verbose = 0;
+static int decimate = 1;
 
 
 #ifdef _WIN32
@@ -443,8 +445,10 @@ static int set_sample_rate(uint32_t sr)
 	}
 	f = (double)sr * deci;
 
-	if (deci == 1)
+	if (deci == 1 && decimate == 1)
 		mir_sdr_DecimateControl(0, 2, 1);
+	else if (decimate != 1)
+		mir_sdr_DecimateControl(1, decimate, 0);
 	else
 		mir_sdr_DecimateControl(1, deci, 0);
 
@@ -579,6 +583,7 @@ void usage(void)
 		"\t[-R Refclk output enable* (default: disabled)]\n"
 		"\t[-f frequency to tune to [Hz]]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
+		"\t[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]\n"
 		"\t[-n max number of linked list buffers to keep (default: 500)]\n"
 		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
 	exit(1);
@@ -618,7 +623,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:g:f:s:n:d:P:LTvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:g:f:s:n:d:P:D:LTvNR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -635,6 +640,10 @@ int main(int argc, char **argv)
 		case 's':
 			samp_rate = (uint32_t)atofs(optarg);
 			break;
+		case 'D':
+                        decimate = atoi(optarg);
+                        break;
+
 		case 'a':
 			addr = optarg;
 			break;
