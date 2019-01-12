@@ -114,7 +114,7 @@ static volatile int do_exit = 0;
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -30
-#define DEFAULT_GAIN_REDUCTION 20
+#define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
 #define DECIMATE_FACTOR 2
@@ -576,7 +576,7 @@ void usage(void)
 		"\t[-p listen port (default: 1234)]\n"
 		"\t[-d RSP device to use (default: 1, first found)]\n"
 		"\t[-P Antenna Port select* (0/1/2, default: 0, Port A)]\n"
-		"\t[-g Gain control (default: 20  / values 0 upto 78)]\n"
+		"\t[-r Gain reduction (default: 40  / values 0 upto 78)]\n"
 		"\t[-L Low Noise Amplifier* (default: disabled)]\n"
 		"\t[-T Bias-T enable* (default: disabled)]\n"
 		"\t[-N Broadcast Notch enable* (default: disabled)]\n"
@@ -624,7 +624,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:g:f:s:n:d:P:D:A:LTvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:D:A:LTvNR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -632,7 +632,7 @@ int main(int argc, char **argv)
 		case 'P':
 			antenna = atoi(optarg);
 			break;
-		case 'g':
+		case 'r':
 			gainReduction = atoi(optarg);
 			break;
 		case 'f':
