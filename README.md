@@ -23,7 +23,7 @@ Usage:
 	
 	[-P Antenna Port select* (0/1/2, default: 0, Port A)] 
 	
-	[-g Gain control (default: 20 / values 0 upto 78)] 
+	[-r Gain reduction (default: 40 / values 0 upto 78)] 
 	
 	[-L Low Noise Amplifier* (default: disabled)]
 	
@@ -75,6 +75,7 @@ Usage:
  - Version 0.1.4: Added extra options Bas.
  - Version 0.1.5: Added Decimate factor, has to be tested.
  - Version 0.1.6: Added Auto Gain Control, beware very agressive!
+  - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
 
 ## Changes made by ON5HB
  - IfFreq now uses twice the bandwidth and decimate 2, so at 2048MHz wide it samples at 4096, this works with websdr.org software
