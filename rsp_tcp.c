@@ -113,6 +113,7 @@ static volatile int do_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
+#define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -30
 #define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
@@ -129,6 +130,7 @@ static int samples_per_packet;
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int decimate = 1;
+static int wideband = DEFAULT_WIDEBAND;
 
 
 #ifdef _WIN32
@@ -446,11 +448,11 @@ static int set_sample_rate(uint32_t sr)
 	f = (double)sr * deci;
 
 	if (deci == 1 && decimate == 1)
-		mir_sdr_DecimateControl(0, 2, 1);
+		mir_sdr_DecimateControl(0, 2, wideband);
 	else if (decimate != 1)
-		mir_sdr_DecimateControl(1, decimate, 0);
+		mir_sdr_DecimateControl(1, decimate, wideband);
 	else
-		mir_sdr_DecimateControl(1, deci, 0);
+		mir_sdr_DecimateControl(1, deci, wideband);
 
 	printf("SR %f, decim %d, BW %d Khz\n", f, deci, bwType);
 
@@ -584,6 +586,7 @@ void usage(void)
 		"\t[-f frequency to tune to [Hz]]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
 		"\t[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]\n"
+		"\t[-W widebandfilters enable* (default: disabled)]\n"
 		"\t[-A Auto Gain Control (default: -30 / values 0 to -60)]\n"
 		"\t[-n max number of linked list buffers to keep (default: 500)]\n"
 		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
@@ -624,7 +627,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:D:A:LTvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:D:A:WLTvNR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -656,6 +659,9 @@ int main(int argc, char **argv)
 		case 'n':
 			llbuf_num = atoi(optarg);
 			break;
+                case 'W':
+                        wideband = 1;
+                        break;
 		case 'L':
 			rspLNA = 1;
 			break;
