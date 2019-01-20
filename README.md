@@ -37,6 +37,8 @@ Usage:
 	
 	[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]
 	
+	[-W widebandfilters enable* (default: disabled)]
+	
 	[-A Auto Gain Control (default: -30 / values 0 to -60)]
 	
 	[-s samplerate in Hz (default: 2048000 Hz)]
@@ -75,14 +77,15 @@ Usage:
  - Version 0.1.4: Added extra options Bas.
  - Version 0.1.5: Added Decimate factor, has to be tested.
  - Version 0.1.6: Added Auto Gain Control, beware very agressive!
-  - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
+ - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
+ - Version 0.1.8: Wideband filtering switch added. 
 
 ## Changes made by ON5HB
- - IfFreq now uses twice the bandwidth and decimate 2, so at 2048MHz wide it samples at 4096, this works with websdr.org software
  - Also for 2880MHz sampling width.
  - Added 6 MHz and above, not tested yet.
  - Added Low Noise Apmlifier support
  - Added gain support
+ - Added widebandfilter support
 
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
