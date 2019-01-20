@@ -79,6 +79,7 @@ Usage:
  - Version 0.1.6: Added Auto Gain Control, beware very agressive!
  - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
  - Version 0.1.8: Wideband filtering switch added. 
+ - Version 0.1.9: Rewrote Sampling lines and set decimate disabled, nomally not needed.
 
 ## Changes made by ON5HB
  - Also for 2880MHz sampling width.
@@ -86,6 +87,8 @@ Usage:
  - Added Low Noise Apmlifier support
  - Added gain support
  - Added widebandfilter support
+ - disabled decimate by default, not needed for websdr.org
+ - rewrote sampling lines, takes a bigger bandwidth at every sampling rate, max samplerate 2880000 in CFG!
 
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
