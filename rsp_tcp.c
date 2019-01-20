@@ -112,13 +112,13 @@ static volatile int do_exit = 0;
 
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
-#define DEFAULT_BW_T mir_sdr_BW_1_536
+#define DEFAULT_BW_T mir_sdr_BW_5_000
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -30
 #define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
-#define DECIMATE_FACTOR 2
+#define DECIMATE_FACTOR 0
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -390,65 +390,55 @@ static int set_sample_rate(uint32_t sr)
 	double f;
 	int deci = 1;
 
-        if (sr >= 8000000)
+        if (sr <= 200000)
         {
                 deci = 1;
-                bwType = mir_sdr_BW_8_000;
+                bwType = mir_sdr_BW_0_200;
         }
-        else if (sr >= 6000000)
+        else if (sr <= 300000)
         {
                 deci = 1;
-                bwType = mir_sdr_BW_6_000;
+                bwType = mir_sdr_BW_0_300;
         }
-        else if (sr >= 3200000)
+        else if (sr <= 600000)
         {
-                deci = 2;
-                bwType = mir_sdr_BW_6_000;
+                deci = 1;
+                bwType = mir_sdr_BW_0_600;
         }
-        else if (sr >= 2500000)
-        {
-                deci = 2;
-                bwType = mir_sdr_BW_5_000;
-        }
-	else if (sr >= 1800000)
+	else if (sr <= 1536000)
 	{
 		deci = 1;
 		bwType = mir_sdr_BW_1_536;
 	}
-	else if (sr >= 1000000)
+	else if (sr <= 5000000)
 	{
-		deci = 2;
-		bwType = mir_sdr_BW_0_600;
+		deci = 1;
+		bwType = mir_sdr_BW_5_000;
 	}
-	else if (sr >= 500000)
+	else if (sr <= 6000000)
 	{
-		deci = 4;
-		bwType = mir_sdr_BW_0_600;
+		deci = 1;
+		bwType = mir_sdr_BW_6_000;
 	}
-	else if (sr >= 250000)
-	{
-		deci = 8;
-		bwType = mir_sdr_BW_0_300;
-	}
-	else if (sr >= 125000)
-	{
-		deci = 16;
-		bwType = mir_sdr_BW_0_200;
-	}
-	else if (sr >= 625000)
-	{
-		deci = 32;
-		bwType = mir_sdr_BW_0_200;
-	}
+	else if (sr <= 7000000)
+        {
+                deci = 1;
+                bwType = mir_sdr_BW_7_000;
+        }
+        else if (sr >= 7000000)
+        {
+                deci = 1;
+                bwType = mir_sdr_BW_8_000;
+        }
 	else
 	{
-		printf("sample rate < 250 kHz not supported\n");
+		printf("sample rate not supported\n");
 		return 1;
 	}
 	f = (double)sr * deci;
 
 	if (deci == 1 && decimate == 1)
-		mir_sdr_DecimateControl(0, 2, wideband);
+		mir_sdr_DecimateControl(0, 0, wideband);
 	else if (decimate != 1)
 		mir_sdr_DecimateControl(1, decimate, wideband);
 	else
