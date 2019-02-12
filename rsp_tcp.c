@@ -112,13 +112,12 @@ static volatile int do_exit = 0;
 
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
-#define DEFAULT_BW_T mir_sdr_BW_5_000
+#define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -30
 #define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
-#define DECIMATE_FACTOR 0
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -129,7 +128,6 @@ static int infoOverallGr;
 static int samples_per_packet;
 static int last_gain_idx = 0;
 static int verbose = 0;
-static int decimate = 1;
 static int wideband = DEFAULT_WIDEBAND;
 
 
@@ -196,7 +194,7 @@ void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChange
 {
 	if(!do_exit) {
 		struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-		rpt->data = (char*)malloc(2 * numSamples);
+		rpt->data = (char*)malloc(2 * numSamples); 
 
 		// assemble the data
 		int i;
@@ -205,7 +203,7 @@ void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChange
 		for(i = 0; i < numSamples; i++, xi++, xq++)
 		{
 			*(data++) = (unsigned char)((*xi>>8)+128);
-			*(data++) = (unsigned char)((*xq>>8)+128);	
+			*(data++) = (unsigned char)((*xq>>8)+128); //bassie
 		}	
 
 		rpt->len = 2 * numSamples;
@@ -389,47 +387,61 @@ static int set_sample_rate(uint32_t sr)
 	int r;
 	double f;
 	int deci = 1;
-
-        if (sr <= 200000)
-        {
-                deci = 1;
-                bwType = mir_sdr_BW_0_200;
-        }
-        else if (sr <= 300000)
-        {
-                deci = 1;
-                bwType = mir_sdr_BW_0_300;
-        }
-        else if (sr <= 600000)
-        {
-                deci = 1;
-                bwType = mir_sdr_BW_0_600;
-        }
-	else if (sr <= 1536000)
-	{
-		deci = 1;
-		bwType = mir_sdr_BW_1_536;
-	}
-	else if (sr <= 5000000)
-	{
-		deci = 1;
-		bwType = mir_sdr_BW_5_000;
-	}
-	else if (sr <= 6000000)
-	{
-		deci = 1;
-		bwType = mir_sdr_BW_6_000;
-	}
-	else if (sr <= 7000000)
-        {
-                deci = 1;
-                bwType = mir_sdr_BW_7_000;
-        }
-        else if (sr >= 7000000)
+	if (sr >= 8000000)
         {
                 deci = 1;
                 bwType = mir_sdr_BW_8_000;
         }
+        else if (sr >= 5000000)
+        {
+                deci = 1;
+                bwType = mir_sdr_BW_6_000;
+        }
+	else if (sr >= 3000000)
+        {
+                deci = 1;
+                bwType = mir_sdr_BW_6_000;
+        }
+	else if (sr >= 2400000)
+	{
+		deci = 1;
+		bwType = mir_sdr_BW_5_000;
+	}
+	else if (sr >= 2000000)
+	{
+		deci = 1;
+		bwType = mir_sdr_BW_1_536;
+	}
+	else if (sr >= 1800000)
+	{
+		deci = 2;
+		bwType = mir_sdr_BW_1_536;
+	}
+	else if (sr >= 1000000)
+	{
+		deci = 2;
+		bwType = mir_sdr_BW_0_600;
+	}
+	else if (sr >= 500000)
+	{
+		deci = 4;
+		bwType = mir_sdr_BW_0_600;
+	}
+	else if (sr >= 250000)
+	{
+		deci = 8;
+		bwType = mir_sdr_BW_0_300;
+	}
+	else if (sr >= 125000)
+	{
+		deci = 16;
+		bwType = mir_sdr_BW_0_200;
+	}
+	else if (sr >= 62500)
+	{
+		deci = 32;
+		bwType = mir_sdr_BW_0_200;
+	}
 	else
 	{
 		printf("sample rate not supported\n");
@@ -437,10 +449,8 @@ static int set_sample_rate(uint32_t sr)
 	}
 	f = (double)sr * deci;
 
-	if (deci == 1 && decimate == 1)
-		mir_sdr_DecimateControl(0, 0, wideband);
-	else if (decimate != 1)
-		mir_sdr_DecimateControl(1, decimate, wideband);
+	if (deci == 1 )
+		mir_sdr_DecimateControl(0, 2, wideband);
 	else
 		mir_sdr_DecimateControl(1, deci, wideband);
 
@@ -575,7 +585,6 @@ void usage(void)
 		"\t[-R Refclk output enable* (default: disabled)]\n"
 		"\t[-f frequency to tune to [Hz]]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
-		"\t[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]\n"
 		"\t[-W widebandfilters enable* (default: disabled)]\n"
 		"\t[-A Auto Gain Control (default: -30 / values 0 to -60)]\n"
 		"\t[-n max number of linked list buffers to keep (default: 500)]\n"
@@ -617,7 +626,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:D:A:WLTvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:WLTvNR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -634,9 +643,6 @@ int main(int argc, char **argv)
 		case 's':
 			samp_rate = (uint32_t)atofs(optarg);
 			break;
-		case 'D':
-                        decimate = atoi(optarg);
-                        break;
 		case 'A':
                         agcSetPoint = atoi(optarg);
                         break;
@@ -719,11 +725,11 @@ int main(int argc, char **argv)
 			mir_sdr_RSPII_AntennaControl(mir_sdr_RSPII_ANTENNA_A);
 			mir_sdr_AmPortSelect(0);
 	}
-	
+
 	// enable DC offset and IQ imbalance correction
 	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	// disable decimation and  set decimation factor to 4
-	mir_sdr_DecimateControl(0, 4, 0);
+	mir_sdr_DecimateControl(0, 2, 1);
 	// enable AGC with a setPoint of -30dBfs
 	mir_sdr_AgcControl(mir_sdr_AGC_100HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
 
