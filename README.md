@@ -34,9 +34,7 @@ Usage:
 	[-R Refclk output enable* (default: disabled)]
 	
 	[-f frequency to tune to [Hz]]
-	
-	[-D decimatefactor (default: 1 auto programmed mode / values 0-2-4-8-16-32-64)]
-	
+
 	[-W widebandfilters enable* (default: disabled)]
 	
 	[-A Auto Gain Control (default: -30 / values 0 to -60)]
@@ -80,6 +78,7 @@ Usage:
  - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
  - Version 0.1.8: Wideband filtering switch added. 
  - Version 0.1.9: Rewrote Sampling lines and set decimate disabled, nomally not needed.
+ - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
 
 ## Changes made by ON5HB
  - Also for 2880MHz sampling width.
@@ -87,7 +86,7 @@ Usage:
  - Added Low Noise Apmlifier support
  - Added gain support
  - Added widebandfilter support
- - disabled decimate by default, not needed for websdr.org
+ - disabled decimate by default, not needed for websdr.org, decimate fixed for low samplerates.
  - rewrote sampling lines, takes a bigger bandwidth at every sampling rate, max samplerate 2880000 in CFG!
 
 ## CREDITS
