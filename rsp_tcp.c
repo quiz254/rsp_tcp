@@ -106,18 +106,20 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 500;
+static int llbuf_num = 1000;
 
 static volatile int do_exit = 0;
 
 #define MAX_DEVS 8
-#define WORKER_TIMEOUT_SEC 3
-#define DEFAULT_BW_T mir_sdr_BW_1_536
+#define WORKER_TIMEOUT_SEC 10
+#define DEFAULT_BW_T mir_sdr_BW_5_000
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -30
 #define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
+#define IF_MODE 0
+
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -129,7 +131,7 @@ static int samples_per_packet;
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = DEFAULT_WIDEBAND;
-
+static int ifmode = IF_MODE;
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tv, void* ignored)
@@ -375,7 +377,7 @@ static int set_freq(uint32_t f)
 {
 	int r;
 
-	r = mir_sdr_Reinit(&gainReduction, 0, (double)f/1e6, 0, 0, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_RF_FREQ);
+	r = mir_sdr_Reinit(&gainReduction, 0, (double)f/1e6, 0, bwType, ifmode, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_RF_FREQ);
 	if (r != mir_sdr_Success) {
 		printf("set freq error (%d)\n", r);
 	}
@@ -397,20 +399,10 @@ static int set_sample_rate(uint32_t sr)
                 deci = 1;
                 bwType = mir_sdr_BW_6_000;
         }
-	else if (sr >= 3000000)
-        {
-                deci = 1;
-                bwType = mir_sdr_BW_6_000;
-        }
-	else if (sr >= 2400000)
-	{
-		deci = 1;
-		bwType = mir_sdr_BW_5_000;
-	}
 	else if (sr >= 2000000)
 	{
 		deci = 1;
-		bwType = mir_sdr_BW_1_536;
+		bwType = mir_sdr_BW_5_000;
 	}
 	else if (sr >= 1800000)
 	{
@@ -456,7 +448,7 @@ static int set_sample_rate(uint32_t sr)
 
 	printf("SR %f, decim %d, BW %d Khz\n", f, deci, bwType);
 
-	r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, 0, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE);
+	r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, ifmode, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE);
 	if (r != mir_sdr_Success) {
 		printf("set sample rate error (%d)\n", r);
 	}
