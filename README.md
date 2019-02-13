@@ -79,6 +79,7 @@ Usage:
  - Version 0.1.8: Wideband filtering switch added. 
  - Version 0.1.9: Rewrote Sampling lines and set decimate disabled, nomally not needed.
  - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
+ - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
 
 ## Changes made by ON5HB
  - Also for 2880MHz sampling width.
