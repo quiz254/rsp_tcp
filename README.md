@@ -41,7 +41,7 @@ Usage:
 	
 	[-s samplerate in Hz (default: 2048000 Hz)]
 	
-	[-n max number of linked list buffers to keep (default: 500)]
+	[-n max number of linked list buffers to keep (default: 1000)]
 	
 	[-v Verbose output (debug) enable (default: disabled)]
 
