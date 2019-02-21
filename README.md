@@ -1,12 +1,11 @@
 # rsp_tcp
 
-(c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3 
+(c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3
 (c)2019 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR
 
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
-
 As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of an RSP : its 14bits ADC, but :
 
 1. It will work with any rtl_tcp capable frontend (probably), see usage below
@@ -16,33 +15,19 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 Usage:
 	
 	[-a listen address]
-	
-	[-p listen port (default: 1234)] 
-	
-	[-d RSP device to use (default: 1, first found)] 
-	
-	[-P Antenna Port select* (0/1/2, default: 0, Port A)] 
-	
-	[-r Gain reduction (default: 40 / values 0 upto 78)] 
-	
+	[-p listen port (default: 1234)]	
+	[-d RSP device to use (default: 1, first found)]
+	[-P Antenna Port select* (0/1/2, default: 0, Port A)]
+	[-r Gain reduction (default: 40 / values 0 upto 78)]
 	[-L Low Noise Amplifier* (default: disabled)]
-	
 	[-T Bias-T enable* (default: disabled)]
-	
 	[-N Broadcast Notch enable* (default: disabled)]
-	
 	[-R Refclk output enable* (default: disabled)]
-	
 	[-f frequency to tune to [Hz]]
-
 	[-W widebandfilters enable* (default: disabled)]
-	
 	[-A Auto Gain Control (default: -30 / values 0 to -60)]
-	
 	[-s samplerate in Hz (default: 2048000 Hz)]
-	
-	[-n max number of linked list buffers to keep (default: 1000)]
-	
+	[-n max number of linked list buffers to keep (default: 8192)]
 	[-v Verbose output (debug) enable (default: disabled)]
 
 ## USAGE
@@ -80,6 +65,7 @@ Usage:
  - Version 0.1.9: Rewrote Sampling lines and set decimate disabled, nomally not needed.
  - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
  - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
+ - Version 0.2.7: Auto-decimate and a lot more buffers.
 
 ## Changes made by ON5HB
  - Also for 2880MHz sampling width.

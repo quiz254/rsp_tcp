@@ -113,7 +113,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 1000;
+static int llbuf_num = 8192;
 
 static volatile int do_exit = 0;
 
@@ -618,7 +618,7 @@ void usage(void)
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
 		"\t[-W widebandfilters enable* (default: disabled)]\n"
 		"\t[-A Auto Gain Control (default: -30 / values 0 to -60)]\n"
-		"\t[-n max number of linked list buffers to keep (default: 500)]\n"
+		"\t[-n max number of linked list buffers to keep (default: 8192)]\n"
 		"\t[-b Sample bit-depth (8/16 default: 8)\n"
 		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
 	exit(1);
