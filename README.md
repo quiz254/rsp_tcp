@@ -29,6 +29,7 @@ Usage:
 	[-A Auto Gain Control (default: -30 / values 0 to -60)]
 	[-s samplerate in Hz (default: 2048000 Hz)]
 	[-n max number of linked list buffers to keep (default: 8192)]
+	[-b Sample bit-depth (8/16 default: 8)]
 	[-v Verbose output (debug) enable (default: disabled)]
 
 ## USAGE
@@ -66,7 +67,7 @@ Usage:
  - Version 0.1.9: Rewrote Sampling lines and set decimate disabled, nomally not needed.
  - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
  - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
- - Version 0.2.7: Auto-decimate and a lot more buffers.
+ - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
 
 ## Changes made by ON5HB
  - Also for 2880MHz sampling width.
