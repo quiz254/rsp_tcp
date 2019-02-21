@@ -82,4 +82,4 @@ Usage:
  - [Thierry Leconte](https://github.com/TLeconte/airspy_tcp.git) for many ideas that I found in his Airspy port of rtl_tcp
  - [Tony Hoyle](https://github.com/TonyHoyle/sdrplay.git) for the initial idea
  - [Pothosware](https://github.com/pothosware) for the cmake build examples
- - [Nicolas F4FHH] for creating the original code to work with rtl_tcp compatible software
+ - [Nicolas F4FHH](https://github.com/f4fhh) for creating the original code to work with rtl_tcp compatible software
