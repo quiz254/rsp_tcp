@@ -113,13 +113,13 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 8192;
+static int llbuf_num = 16384;
 
 static volatile int do_exit = 0;
 
 #define MAX_DEVS 4
 #define WORKER_TIMEOUT_SEC 3
-#define DEFAULT_BW_T mir_sdr_BW_5_000
+#define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -30
 #define DEFAULT_GAIN_REDUCTION 40
@@ -618,7 +618,7 @@ void usage(void)
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
 		"\t[-W widebandfilters enable* (default: disabled)]\n"
 		"\t[-A Auto Gain Control (default: -30 / values 0 to -60)]\n"
-		"\t[-n max number of linked list buffers to keep (default: 8192)]\n"
+		"\t[-n max number of linked list buffers to keep (default: 16384)]\n"
 		"\t[-b Sample bit-depth (8/16 default: 8)\n"
 		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
 	exit(1);
