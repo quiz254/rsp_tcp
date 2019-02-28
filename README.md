@@ -56,6 +56,7 @@ Usage:
 ## TODO
  - Enhance the IF and RF gain management depending on bands
  - Enhance the re-quantization from 14/12/10 bits to 8 bits
+ - Make a 1 SDRplay-box switch to make max bandwidth bigger, fails with more then 1.
 
 ## HISTORY
  - Version 0.1.0: Initial build
@@ -68,6 +69,7 @@ Usage:
  - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
  - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
  - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
+ - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
 
 ## Changes made by ON5HB
  - Also for 2880MHz sampling width.
