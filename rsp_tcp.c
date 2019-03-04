@@ -198,7 +198,7 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 		printf("adc overload corrected\n");
 		mir_sdr_GainChangeCallbackMessageReceived(); 
 	}
-	else
+	else if (verbose)
 		printf("new gain reduction (%d), lna gain reduction (%d)\n", gRdB, lnaGRdB);
 }
 
