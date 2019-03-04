@@ -1,12 +1,12 @@
 # rsp_tcp
 
 (c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3
-
-(c)2019 ON5HB Bas Heijermans (on5hb@heppen.be), Forked and adjusted for websdr.org
+(c)2019 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR
 
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
+
 As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of an RSP : its 14bits ADC, but :
 
 1. It will work with any rtl_tcp capable frontend (probably), see usage below
@@ -14,30 +14,29 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 
 ## OPTIONS
 Usage:
-	
 	[-a listen address]
-	[-p listen port (default: 1234)]	
-	[-d RSP device to use (default: 1, first found)]
-	[-P Antenna Port select* (0/1/2, default: 0, Port A)]
-	[-r Gain reduction (default: 40 / values 0 upto 78)]
-	[-L Low Noise Amplifier* (default: disabled)]
+	[-p listen port (default: 1234)] 
+	[-d RSP device to use (default: 1, first found)] 
+	[-P Antenna Port select* (0/1/2, default: 0, Port A)] 
+	[-r Gain reduction (default: 60 / values 0 upto 78)] 
+	[-L Low Noise Amplifier* (default: enabled)]
 	[-T Bias-T enable* (default: disabled)]
-	[-N Broadcast Notch enable* (default: disabled)]
+	[-N Broadcast Notch enable* (default: enabled)]
 	[-R Refclk output enable* (default: disabled)]
 	[-f frequency to tune to [Hz]]
+        [-s samplerate in Hz (default: 2048000 Hz)]
 	[-W widebandfilters enable* (default: disabled)]
-	[-A Auto Gain Control (default: -30 / values 0 to -60)]
-	[-s samplerate in Hz (default: 2048000 Hz)]
-	[-n max number of linked list buffers to keep (default: 8192)]
+	[-A Auto Gain Control (default: -28 / values 0 to -60)]
+	[-n max number of linked list buffers to keep (default: 16384)]
 	[-b Sample bit-depth (8/16 default: 8)]
 	[-v Verbose output (debug) enable (default: disabled)]
 
 ## USAGE
- - RTL Tuner AGC is mapped to RSP RF AGC
- - RTL AGC is mapped to LNAState (RTL AGC on = LNA enabled)
- - RTL RF gain is mapped to inverse gain reduction
- - RTL frequency correction is mapped to RSP setPPM
- - RTL sample rates >= 2Ms/s are mapped to the RSP sample rate, RTL sample rates < 2Ms/s use appropriate decimation
+ - This software is optimised for usage with websdr.org software. 
+ - Use !rtl_sdr adress/port/ppm like you normally would with an RTL-dongle
+ - RTL RF gain is set automaticly, not much change needed unless signals are too low or high
+ - RTL sample rates tested are those in the websdr.org documentation but lower even down to 62500 has been tested.
+ - Install the HW/API 2.13 driver from RSPplay for the RSP1A first!!
 
 ## BUILDING
 ```
@@ -49,40 +48,27 @@ Usage:
 ```
 ## NOTES
  - a RSP API version >=2.13 must be installed on the linux server, see [sdrplay linux downloads](https://www.sdrplay.com/downloads/)
- - I try it with [SDR#](https://airspy.com/download/) frontend only. Other tests are welcome.
  - It should compile and run on Raspbian (raspberry pi) (not tested)
  - It should compile on windows as the initial code from rtl_tcp does
+ - The goal of this software is ONLY to work well with websdr.org, no other websdr servers or RTL-compatible software but it may work.
 
 ## TODO
- - Enhance the IF and RF gain management depending on bands
- - Enhance the re-quantization from 14/12/10 bits to 8 bits
- - Make a 1 SDRplay-box switch to make max bandwidth bigger, fails with more then 1.
+ - Enhance the IF and RF gain management depending on bands, often edges of the bands are not flat like with 1536000 samplerate.
 
-## HISTORY
+## HISTORY (later versions are forked by Bas ON5HB from original of F4FHH)
  - Version 0.1.0: Initial build
  - Version 0.1.4: Added extra options Bas.
  - Version 0.1.5: Added Decimate factor, has to be tested.
- - Version 0.1.6: Added Auto Gain Control, beware very agressive!
  - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
- - Version 0.1.8: Wideband filtering switch added. 
- - Version 0.1.9: Rewrote Sampling lines and set decimate disabled, nomally not needed.
  - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
  - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
  - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
  - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
-
-## Changes made by ON5HB
- - Also for 2880MHz sampling width.
- - Added 6 MHz and above, not tested yet.
- - Added Low Noise Apmlifier support
- - Added gain support
- - Added widebandfilter support
- - disabled decimate by default, not needed for websdr.org, decimate fixed for low samplerates.
- - rewrote sampling lines, takes a bigger bandwidth at every sampling rate, max samplerate 2880000 in CFG!
+ - Version 0.3.0: No more settings needed unless the defaults aren't good for you.
 
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
  - [Thierry Leconte](https://github.com/TLeconte/airspy_tcp.git) for many ideas that I found in his Airspy port of rtl_tcp
  - [Tony Hoyle](https://github.com/TonyHoyle/sdrplay.git) for the initial idea
  - [Pothosware](https://github.com/pothosware) for the cmake build examples
- - [Nicolas F4FHH](https://github.com/f4fhh) for creating the original code to work with rtl_tcp compatible software
+ - [Nicolas F4FHH] for creating the original code to work with rtl_tcp compatible software

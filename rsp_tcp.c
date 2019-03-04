@@ -121,9 +121,9 @@ static volatile int do_exit = 0;
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_WIDEBAND 0
-#define DEFAULT_AGC_SETPOINT -30
-#define DEFAULT_GAIN_REDUCTION 40
-#define DEFAULT_LNA 0
+#define DEFAULT_AGC_SETPOINT -28
+#define DEFAULT_GAIN_REDUCTION 60
+#define DEFAULT_LNA 1
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
 #define MAX_DECIMATION_FACTOR 64
@@ -451,26 +451,45 @@ static int set_sample_rate(uint32_t sr)
         {
                 if (sr >= 8000000 && sr <= 10000000)
                 {
+			deci = 1;
                         bwType = mir_sdr_BW_8_000;
                 }
                 else
                 if (sr >= 7000000 && sr < 8000000)
                 {
+			deci = 1;
                         bwType = mir_sdr_BW_7_000;
                 }
                 else
                 if (sr >= 6000000 && sr < 7000000)
-                        {
-                                bwType = mir_sdr_BW_6_000;
-                        }
+                {
+			deci = 1;
+                        bwType = mir_sdr_BW_6_000;
+                }
                 else if (sr >= 5000000 && sr < 6000000)
 		{
+			deci = 1;
                         bwType = mir_sdr_BW_5_000;
                 }
-                else if (sr >= 2500000 && sr < 5000000)
+                else if (sr >= 4000000 && sr < 5000000)
                 {
                         deci = 2;
-                        bwType = mir_sdr_BW_1_536;
+                        bwType = mir_sdr_BW_8_000;
+                }
+                else if (sr >= 3500000 && sr < 4000000)
+                {
+                        deci = 2;
+                        bwType = mir_sdr_BW_7_000;
+                }
+                else if (sr >= 3000000 && sr < 3500000)
+                {
+                        deci = 2;
+                        bwType = mir_sdr_BW_6_000;
+                }
+                else if (sr >= 2500000 && sr < 3000000)
+                {
+                        deci = 2;
+                        bwType = mir_sdr_BW_5_000;
                 }
                 else
                 {
@@ -609,15 +628,15 @@ void usage(void)
 		"\t[-p listen port (default: 1234)]\n"
 		"\t[-d RSP device to use (default: 1, first found)]\n"
 		"\t[-P Antenna Port select* (0/1/2, default: 0, Port A)]\n"
-		"\t[-r Gain reduction (default: 40  / values 0 upto 78)]\n"
-		"\t[-L Low Noise Amplifier* (default: disabled)]\n"
+		"\t[-r Gain reduction (default: 60  / values 0 upto 78)]\n"
+		"\t[-L Low Noise Amplifier* (default: enabled)]\n"
 		"\t[-T Bias-T enable* (default: disabled)]\n"
-		"\t[-N Broadcast Notch enable* (default: disabled)]\n"
+		"\t[-N Broadcast Notch enable* (default: enabled)]\n"
 		"\t[-R Refclk output enable* (default: disabled)]\n"
 		"\t[-f frequency to tune to [Hz]]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
 		"\t[-W widebandfilters enable* (default: disabled)]\n"
-		"\t[-A Auto Gain Control (default: -30 / values 0 to -60)]\n"
+		"\t[-A Auto Gain Control (default: -28 / values 0 to -60)]\n"
 		"\t[-n max number of linked list buffers to keep (default: 16384)]\n"
 		"\t[-b Sample bit-depth (8/16 default: 8)\n"
 		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
@@ -648,7 +667,7 @@ int main(int argc, char **argv)
  	int device = 0;
 	int antenna = 0;
 	int enable_biastee = 0;
-	int enable_notch = 0;
+	int enable_notch = 1;
 	int enable_refout = 0;
 	int bit_depth = 8;
 
@@ -696,13 +715,13 @@ int main(int argc, char **argv)
                         wideband = 1;
                         break;
 		case 'L':
-			rspLNA = 1;
+			rspLNA = 0;
 			break;
 		case 'T':
 			enable_biastee = 1;
 			break;
 		case 'N':
-			enable_notch = 1;
+			enable_notch = 0;
 			break;
 		case 'R':
 			enable_refout = 1;
