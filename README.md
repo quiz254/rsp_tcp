@@ -33,9 +33,9 @@ Usage:
 	
 	-R Refclk output enable* (default: disabled)
 	
-	-f frequency to tune to [Hz]
+	-f frequency to tune to (Hz)
 	
-        -s samplerate in Hz (default: 2048000 Hz)
+	-s samplerate in Hz (default: 2048000 Hz)
 	
 	-W widebandfilters enable* (default: disabled)
 	
