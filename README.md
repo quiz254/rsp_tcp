@@ -14,22 +14,22 @@ As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of
 
 ## OPTIONS
 Usage:
-	[-a listen address]
-	[-p listen port (default: 1234)] 
-	[-d RSP device to use (default: 1, first found)] 
-	[-P Antenna Port select* (0/1/2, default: 0, Port A)] 
-	[-r Gain reduction (default: 60 / values 0 upto 78)] 
-	[-L Low Noise Amplifier* (default: enabled)]
-	[-T Bias-T enable* (default: disabled)]
-	[-N Broadcast Notch enable* (default: enabled)]
-	[-R Refclk output enable* (default: disabled)]
-	[-f frequency to tune to [Hz]]
-        [-s samplerate in Hz (default: 2048000 Hz)]
-	[-W widebandfilters enable* (default: disabled)]
-	[-A Auto Gain Control (default: -28 / values 0 to -60)]
-	[-n max number of linked list buffers to keep (default: 16384)]
-	[-b Sample bit-depth (8/16 default: 8)]
-	[-v Verbose output (debug) enable (default: disabled)]
+	-a listen address
+	-p listen port (default: 1234)
+	-d RSP device to use (default: 1, first found)
+	-P Antenna Port select* (0/1/2, default: 0, Port A)
+	-r Gain reduction (default: 60 / values 0 upto 78)
+	-L Low Noise Amplifier* (default: enabled)
+	-T Bias-T enable* (default: disabled)
+	-N Broadcast Notch enable* (default: enabled)
+	-R Refclk output enable* (default: disabled)
+	-f frequency to tune to [Hz]
+        -s samplerate in Hz (default: 2048000 Hz)
+	-W widebandfilters enable* (default: disabled)
+	-A Auto Gain Control (default: -28 / values 0 to -60)
+	-n max number of linked list buffers to keep (default: 16384)
+	-b Sample bit-depth (8/16 default: 8)
+	-v Verbose output (debug) enable (default: disabled)
 
 ## USAGE
  - This software is optimised for usage with websdr.org software. 
