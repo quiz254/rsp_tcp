@@ -85,7 +85,7 @@ Usage:
  - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
  - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
  - Version 0.3.0: No more settings needed unless the defaults aren't good for you.
- - Version 0.3.1: Splitted Broadcast and DAB notches and they are anabled by default
+ - Version 0.3.2: Splitted Broadcast and DAB notches and they are anabled by default
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
