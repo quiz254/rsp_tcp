@@ -30,7 +30,9 @@ Usage:
 	
 	-T Bias-T enable* (default: disabled)
 	
-	-N Broadcast Notch enable* (default: enabled)
+	-D DAB Notch disable* (default: enabled)
+	
+	-B Broadcast Notch disable* (default: enabled)
 	
 	-R Refclk output enable* (default: disabled)
 	
@@ -71,7 +73,8 @@ Usage:
 
 ## TODO
  - Enhance the IF and RF gain management depending on bands, often edges of the bands are not flat like with 1536000 samplerate.
-
+ - BiasT doesn't work no matter what I try, tested 2 RSP1A no BiasT
+ 
 ## HISTORY (later versions are forked by Bas ON5HB from original of F4FHH)
  - Version 0.1.0: Initial build
  - Version 0.1.4: Added extra options Bas.
@@ -82,7 +85,8 @@ Usage:
  - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
  - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
  - Version 0.3.0: No more settings needed unless the defaults aren't good for you.
-
+ - Version 0.3.1: Splitted Broadcast and DAB notches and they are anabled by default
+ 
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
  - [Thierry Leconte](https://github.com/TLeconte/airspy_tcp.git) for many ideas that I found in his Airspy port of rtl_tcp
