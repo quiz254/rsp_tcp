@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #ifndef _WIN32
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -81,6 +80,13 @@ typedef enum
         RSP_TCP_SAMPLE_FORMAT_INT16 = 0x2
 } rsp_tcp_sample_format_t;
 
+typedef enum {
+        RSP_MODEL_UNKNOWN = 0,
+        RSP_MODEL_RSP1 = 1,
+        RSP_MODEL_RSP1A = 2,
+        RSP_MODEL_RSP2 = 3,
+        RSP_MODEL_RSPDUO = 4
+} rsp_model_t;
 
 double atofs(char *s)
 /* standard suffixes */
@@ -117,7 +123,7 @@ static int llbuf_num = 16384;
 
 static volatile int do_exit = 0;
 
-#define MAX_DEVS 4
+#define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_WIDEBAND 0
@@ -141,6 +147,16 @@ static int wideband = DEFAULT_WIDEBAND;
 static int ifmode = IF_MODE;
 static rsp_tcp_sample_format_t sample_format = RSP_TCP_SAMPLE_FORMAT_UINT8;
 static int sample_shift = 2;
+
+////waardes
+static int devAvail = 0;
+static int device = 0;
+static int antenna = 0;
+static int enable_biastee = 0;
+static int enable_dabnotch = 1;
+static int enable_broadcastnotch = 1;
+static int enable_refout = 0;
+static int bit_depth = 8;
 
 
 #ifdef _WIN32
@@ -434,13 +450,13 @@ static int set_sample_rate(uint32_t sr)
                 {
                         bwType = mir_sdr_BW_1_536;
                 }
-                else if (sr >= 600000 && sr < 1536000)
+		else if (sr >= 600000 && sr < 1536000)
+                {
+                        bwType = mir_sdr_BW_1_536;
+                }
+                else if (sr >= 200000 && sr < 600000)
                 {
                         bwType = mir_sdr_BW_0_600;
-                }
-                else if (sr >= 300000 && sr < 600000)
-                {
-                        bwType = mir_sdr_BW_0_300;
                 }
 		else
                 {
@@ -449,6 +465,20 @@ static int set_sample_rate(uint32_t sr)
         }
         else
         {
+                if (sr == 2048000)
+                {
+                        deci = 1;
+                        bwType = mir_sdr_BW_5_000;
+			//ifmode = 2048;
+                }
+		else
+                if (sr == 2880000)
+                {
+                        deci = 1;
+                        bwType = mir_sdr_BW_5_000;
+                        //ifmode = 2048;
+                }
+                else
                 if (sr >= 8000000 && sr <= 10000000)
                 {
 			deci = 1;
@@ -558,9 +588,10 @@ static void *command_worker(void *arg)
 			set_freq(ntohl(cmd.param));
 			break;
 		case 0x02:
-			printf("set sample rate %d\n", ntohl(cmd.param));
-			set_sample_rate(ntohl(cmd.param));
-			break;
+                        printf("set sample rate %d\n", ntohl(cmd.param));
+                        set_sample_rate(ntohl(cmd.param));
+                        break;
+
 		case 0x03:
 			printf("set gain mode %d\n", ntohl(cmd.param));
 			set_tuner_gain_mode(ntohl(cmd.param));
@@ -631,7 +662,8 @@ void usage(void)
 		"\t[-r Gain reduction (default: 60  / values 0 upto 78)]\n"
 		"\t[-L Low Noise Amplifier* (default: enabled)]\n"
 		"\t[-T Bias-T enable* (default: disabled)]\n"
-		"\t[-N Broadcast Notch enable* (default: enabled)]\n"
+		"\t[-D DAB Notch disable* (default: enabled)]\n"
+		"\t[-B Broadcast Notch disable* (default: enabled)]\n"
 		"\t[-R Refclk output enable* (default: disabled)]\n"
 		"\t[-f frequency to tune to [Hz]]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
@@ -663,14 +695,7 @@ int main(int argc, char **argv)
 	float ver;
 	mir_sdr_DeviceT devices[MAX_DEVS];
 	unsigned int numDevs;
- 	int devAvail = 0;
- 	int device = 0;
-	int antenna = 0;
-	int enable_biastee = 0;
-	int enable_notch = 1;
-	int enable_refout = 0;
-	int bit_depth = 8;
-
+/////waardes
 
 #ifdef _WIN32
 	WSADATA wsd;
@@ -679,7 +704,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:WLTvNR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:WLTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -720,8 +745,11 @@ int main(int argc, char **argv)
 		case 'T':
 			enable_biastee = 1;
 			break;
-		case 'N':
-			enable_notch = 0;
+		case 'D':
+                        enable_dabnotch = 0;
+                        break;
+		case 'B':
+			enable_broadcastnotch = 0;
 			break;
 		case 'R':
 			enable_refout = 1;
@@ -914,12 +942,12 @@ int main(int argc, char **argv)
 		mir_sdr_rsp1a_BiasT(enable_biastee);
 		mir_sdr_rspDuo_BiasT(enable_biastee);
 		// set Notch
-		mir_sdr_RSPII_RfNotchEnable(enable_notch);
-		mir_sdr_rsp1a_DabNotch(enable_notch);
-		mir_sdr_rsp1a_BroadcastNotch(enable_notch);
-		mir_sdr_rspDuo_DabNotch(enable_notch);
-		mir_sdr_rspDuo_BroadcastNotch(enable_notch);
-		mir_sdr_rspDuo_Tuner1AmNotch(enable_notch);
+		mir_sdr_RSPII_RfNotchEnable(enable_broadcastnotch);
+		mir_sdr_rsp1a_DabNotch(enable_dabnotch);
+		mir_sdr_rsp1a_BroadcastNotch(enable_broadcastnotch);
+		mir_sdr_rspDuo_DabNotch(enable_dabnotch);
+		mir_sdr_rspDuo_BroadcastNotch(enable_broadcastnotch);
+		mir_sdr_rspDuo_Tuner1AmNotch(enable_broadcastnotch);
 		// set external reference output
 		mir_sdr_RSPII_ExternalReferenceControl(enable_refout);
 		mir_sdr_rspDuo_ExtRef(enable_refout);
