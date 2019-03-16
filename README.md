@@ -36,7 +36,7 @@ Usage:
 	
 	-R Refclk output enable* (default: disabled)
 	
-	-f frequency to tune to (Hz)
+	-f frequency to tune to (Hz) - If freq set progfreq is ignored!!
 	
 	-s samplerate in Hz (default: 2048000 Hz)
 	
@@ -86,6 +86,7 @@ Usage:
  - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
  - Version 0.3.0: No more settings needed unless the defaults aren't good for you.
  - Version 0.3.2: Splitted Broadcast and DAB notches and they are anabled by default
+ - Version 0.3.3: When -f is used at commandline the server will ignore frequency changes from client like progfreq!!!
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
