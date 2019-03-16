@@ -120,6 +120,7 @@ double atofs(char *s)
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
 static int llbuf_num = 16384;
+static int ignore_f_command = 0;
 
 static volatile int do_exit = 0;
 
@@ -458,7 +459,7 @@ static int set_sample_rate(uint32_t sr)
                 {
                         bwType = mir_sdr_BW_0_600;
                 }
-		else
+		else if (sr <= 200000)
                 {
                         bwType = mir_sdr_BW_0_200;
                 }
@@ -468,15 +469,13 @@ static int set_sample_rate(uint32_t sr)
                 if (sr == 2048000)
                 {
                         deci = 1;
-                        bwType = mir_sdr_BW_5_000;
-			//ifmode = 2048;
+                        bwType = mir_sdr_BW_1_536;
                 }
 		else
                 if (sr == 2880000)
                 {
                         deci = 1;
-                        bwType = mir_sdr_BW_5_000;
-                        //ifmode = 2048;
+                        bwType = mir_sdr_BW_1_536;
                 }
                 else
                 if (sr >= 8000000 && sr <= 10000000)
@@ -584,8 +583,14 @@ static void *command_worker(void *arg)
 		}
 		switch(cmd.cmd) {
 		case 0x01:
-			printf("set freq %d\n", ntohl(cmd.param));
-			set_freq(ntohl(cmd.param));
+//			printf("set freq %d\n", ntohl(cmd.param));
+//			set_freq(ntohl(cmd.param));
+			if (ignore_f_command) {
+				printf("set freq %d ignored because -f used at commandline\n", ntohl(cmd.param));
+			} else {
+				printf("set freq %d\n", ntohl(cmd.param));
+				set_freq(ntohl(cmd.param));
+			}
 			break;
 		case 0x02:
                         printf("set sample rate %d\n", ntohl(cmd.param));
@@ -645,6 +650,7 @@ static void *command_worker(void *arg)
 			break;
 		}
 		cmd.cmd = 0xff;
+		fflush(stdout);
 	}
 }
 
@@ -665,7 +671,7 @@ void usage(void)
 		"\t[-D DAB Notch disable* (default: enabled)]\n"
 		"\t[-B Broadcast Notch disable* (default: enabled)]\n"
 		"\t[-R Refclk output enable* (default: disabled)]\n"
-		"\t[-f frequency to tune to [Hz]]\n"
+		"\t[-f frequency to tune to [Hz] - If freq set progfreq is ignored!!]\n"
 		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
 		"\t[-W widebandfilters enable* (default: disabled)]\n"
 		"\t[-A Auto Gain Control (default: -28 / values 0 to -60)]\n"
@@ -720,6 +726,7 @@ int main(int argc, char **argv)
 			break;
 		case 'f':
 			frequency = (uint32_t)atofs(optarg);
+			ignore_f_command = 1;
 			break;
 		case 's':
 			samp_rate = (uint32_t)atofs(optarg);
