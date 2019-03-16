@@ -38,7 +38,7 @@ Usage:
 	
 	-f frequency to tune to (Hz) - If freq set progfreq is ignored!!
 	
-	-s samplerate in Hz (default: 2048000 Hz)
+	-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!
 	
 	-W widebandfilters enable* (default: disabled)
 	
@@ -87,6 +87,7 @@ Usage:
  - Version 0.3.0: No more settings needed unless the defaults aren't good for you.
  - Version 0.3.2: Splitted Broadcast and DAB notches and they are anabled by default
  - Version 0.3.3: When -f is used at commandline the server will ignore frequency changes from client like progfreq!!!
+ - Version 0.3.4: When -s is used at commandline the server will ignore samplerate settings from the client!!!
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
