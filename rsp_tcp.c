@@ -121,12 +121,13 @@ static int global_numq = 0;
 static struct llist *ll_buffers = 0;
 static int llbuf_num = 16384;
 static int ignore_f_command = 0;
+static int ignore_s_command = 0;
 
 static volatile int do_exit = 0;
 
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
-#define DEFAULT_BW_T mir_sdr_BW_1_536
+#define DEFAULT_BW_T mir_sdr_BW_8_000
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -28
 #define DEFAULT_GAIN_REDUCTION 60
@@ -593,10 +594,15 @@ static void *command_worker(void *arg)
 			}
 			break;
 		case 0x02:
-                        printf("set sample rate %d\n", ntohl(cmd.param));
-                        set_sample_rate(ntohl(cmd.param));
+//                        printf("set sample rate %d\n", ntohl(cmd.param));
+//                        set_sample_rate(ntohl(cmd.param));
+                        if (ignore_s_command) {
+                                printf("set sample rate %d ignored because -s used at commandline\n", ntohl(cmd.param));
+                        } else {
+                                printf("set sample rate %d\n", ntohl(cmd.param));
+                                set_sample_rate(ntohl(cmd.param));
+                        }
                         break;
-
 		case 0x03:
 			printf("set gain mode %d\n", ntohl(cmd.param));
 			set_tuner_gain_mode(ntohl(cmd.param));
@@ -671,8 +677,8 @@ void usage(void)
 		"\t[-D DAB Notch disable* (default: enabled)]\n"
 		"\t[-B Broadcast Notch disable* (default: enabled)]\n"
 		"\t[-R Refclk output enable* (default: disabled)]\n"
-		"\t[-f frequency to tune to [Hz] - If freq set progfreq is ignored!!]\n"
-		"\t[-s samplerate in Hz (default: 2048000 Hz)]\n"
+		"\t[-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!]\n"
+		"\t[-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!]\n"
 		"\t[-W widebandfilters enable* (default: disabled)]\n"
 		"\t[-A Auto Gain Control (default: -28 / values 0 to -60)]\n"
 		"\t[-n max number of linked list buffers to keep (default: 16384)]\n"
@@ -730,6 +736,7 @@ int main(int argc, char **argv)
 			break;
 		case 's':
 			samp_rate = (uint32_t)atofs(optarg);
+			ignore_s_command = 1;
 			break;
 		case 'A':
                         agcSetPoint = atoi(optarg);
