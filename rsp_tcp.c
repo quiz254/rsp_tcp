@@ -130,7 +130,7 @@ static volatile int do_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_8_000
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -28
-#define DEFAULT_GAIN_REDUCTION 60
+#define DEFAULT_GAIN_REDUCTION 50
 #define DEFAULT_LNA 1
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
@@ -667,23 +667,26 @@ void usage(void)
 		"VERSION "SERVER_VERSION
 #endif
 		"\n\n"
-		"Usage:\t[-a listen address]\n"
-		"\t[-p listen port (default: 1234)]\n"
-		"\t[-d RSP device to use (default: 1, first found)]\n"
-		"\t[-P Antenna Port select* (0/1/2, default: 0, Port A)]\n"
-		"\t[-r Gain reduction (default: 60  / values 0 upto 78)]\n"
-		"\t[-L Low Noise Amplifier* (default: enabled)]\n"
-		"\t[-T Bias-T enable* (default: disabled)]\n"
-		"\t[-D DAB Notch disable* (default: enabled)]\n"
-		"\t[-B Broadcast Notch disable* (default: enabled)]\n"
-		"\t[-R Refclk output enable* (default: disabled)]\n"
-		"\t[-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!]\n"
-		"\t[-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!]\n"
-		"\t[-W widebandfilters enable* (default: disabled)]\n"
-		"\t[-A Auto Gain Control (default: -28 / values 0 to -60)]\n"
-		"\t[-n max number of linked list buffers to keep (default: 16384)]\n"
-		"\t[-b Sample bit-depth (8/16 default: 8)\n"
-		"\t[-v Verbose output (debug) enable (default: disabled)]\n");
+		"Usage:\t-a listen address\n"
+		"\t-p listen port (default: 1234)\n"
+		"\t-d RSP device to use (default: 1, first found)\n"
+		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
+		"\t-r Gain reduction (default: 50  / values 0 upto 78)\n"
+		"\t-L Low Noise Amplifier* (default: enabled)\n"
+		"\t-T Bias-T enable* (default: disabled)\n"
+		"\t-D DAB Notch disable* (default: enabled)\n"
+		"\t-B Broadcast Notch disable* (default: enabled)\n"
+		"\t-R Refclk output enable* (default: disabled)\n"
+		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
+		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
+		"\t-W widebandfilters enable* (default: disabled)\n"
+		"\t-A Auto Gain Control (default: -28 / values 0 to -60)\n"
+		"\t-n max number of linked list buffers to keep (default: 16384)\n"
+		"\t-b Sample bit-depth (8/16 default: 8)\n"
+		"\t-v Verbose output (debug) enable (default: disabled)\n"
+		"\n\n"
+		"Remark: These settings are for use with upconverter, if you do not use an upconverter try -A38\n"
+		"\n\n" );
 	exit(1);
 }
 
