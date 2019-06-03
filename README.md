@@ -24,7 +24,7 @@ Usage:
 	
 	-P Antenna Port select* (0/1/2, default: 0, Port A)
 	
-	-r Gain reduction (default: 50 / values 0 upto 78)
+	-r Gain reduction (default: 54 / values 0 upto 78)
 	
 	-L Low Noise Amplifier* (default: enabled)
 	
@@ -42,7 +42,7 @@ Usage:
 	
 	-W widebandfilters enable* (default: disabled)
 	
-	-A Auto Gain Control (default: -28 / values 0 to -60)
+	-A Auto Gain Control (default: -38 / values 0 to -60)
 	
 	-n max number of linked list buffers to keep (default: 16384)
 	
@@ -89,6 +89,7 @@ Usage:
  - Version 0.3.3: When -f is used at commandline the server will ignore frequency changes from client like progfreq!!!
  - Version 0.3.4: When -s is used at commandline the server will ignore samplerate settings from the client!!!
  - Version 0.3.5: Lowered gain reduction better default value and added line with remark if people use no upconverter.
+ - Version 0.3.6: Set default settings for use without upconverter. Tested on HF.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
