@@ -90,6 +90,7 @@ Usage:
  - Version 0.3.4: When -s is used at commandline the server will ignore samplerate settings from the client!!!
  - Version 0.3.5: Lowered gain reduction better default value and added line with remark if people use no upconverter.
  - Version 0.3.6: Set default settings for use without upconverter. Tested on HF.
+ - Version 0.3.7: Set compiler to use -Ofast to run faster, seems to give lower CPU-load but I/Q output is the same.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
