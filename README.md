@@ -48,6 +48,8 @@ Usage:
 	
 	-b Sample bit-depth (8/16 default: 8)
 	
+	-o Use optimal decimate but works only well with 1 receiver (default: disabled)
+	
 	-v Verbose output (debug) enable (default: disabled)
 
 ## USAGE
@@ -91,6 +93,7 @@ Usage:
  - Version 0.3.5: Lowered gain reduction better default value and added line with remark if people use no upconverter.
  - Version 0.3.6: Set default settings for use without upconverter. Tested on HF.
  - Version 0.3.7: Set compiler to use -Ofast to run faster, seems to give lower CPU-load but I/Q output is the same.
+ - Version 0.4.0: Made -o Optimal Decimate, works very well if you have just 1 receiver. You can regulate the max level in the source, it's set to 64, but if you want less, just set it 2 or 4, any even number between 2 to 64
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
