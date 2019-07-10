@@ -119,7 +119,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 16384;
+static int llbuf_num = 1024;
 static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
@@ -135,6 +135,7 @@ static volatile int do_exit = 0;
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
 #define MAX_DECIMATION_FACTOR 64
+#define OPTIMAL_DECIMATION 1
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -159,6 +160,7 @@ static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int bit_depth = 8;
+static int opt_deci = 0;
 
 
 #ifdef _WIN32
@@ -438,19 +440,19 @@ static int set_sample_rate(uint32_t sr)
                 return -1;
         }
 
-	else if (sr < 2000000)
+	else if (sr < 3000000 && opt_deci == 1)
         {
                 int c = 0;
 
                 // Find best decimation factor
-                while (sr * (1 << c) < 2000000 && (1 << c) < MAX_DECIMATION_FACTOR) {
+                while (sr * (1 << c) < 3000000 && (1 << c) < MAX_DECIMATION_FACTOR) {
                         c++; }
 
 		deci = 1 << c;
 
-		if (sr >= 1536000 && sr < 2000000)
+		if (sr >= 1536000 && sr < 3000000)
                 {
-                        bwType = mir_sdr_BW_1_536;
+                        bwType = mir_sdr_BW_5_000;
                 }
 		else if (sr >= 600000 && sr < 1536000)
                 {
@@ -488,33 +490,33 @@ static int set_sample_rate(uint32_t sr)
                 if (sr >= 7000000 && sr < 8000000)
                 {
 			deci = 1;
-                        bwType = mir_sdr_BW_7_000;
+                        bwType = mir_sdr_BW_8_000;
                 }
                 else
                 if (sr >= 6000000 && sr < 7000000)
                 {
 			deci = 1;
-                        bwType = mir_sdr_BW_6_000;
+                        bwType = mir_sdr_BW_7_000;
                 }
                 else if (sr >= 5000000 && sr < 6000000)
 		{
 			deci = 1;
-                        bwType = mir_sdr_BW_5_000;
+                        bwType = mir_sdr_BW_6_000;
                 }
                 else if (sr >= 4000000 && sr < 5000000)
                 {
                         deci = 2;
-                        bwType = mir_sdr_BW_8_000;
+                        bwType = mir_sdr_BW_5_000;
                 }
                 else if (sr >= 3500000 && sr < 4000000)
                 {
                         deci = 2;
-                        bwType = mir_sdr_BW_7_000;
+                        bwType = mir_sdr_BW_5_000;
                 }
                 else if (sr >= 3000000 && sr < 3500000)
                 {
                         deci = 2;
-                        bwType = mir_sdr_BW_6_000;
+                        bwType = mir_sdr_BW_5_000;
                 }
                 else if (sr >= 2500000 && sr < 3000000)
                 {
@@ -681,8 +683,9 @@ void usage(void)
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W widebandfilters enable* (default: disabled)\n"
 		"\t-A Auto Gain Control (default: -38 / values 0 to -60)\n"
-		"\t-n max number of linked list buffers to keep (default: 16384)\n"
+		"\t-n max number of linked list buffers to keep (default: 1024)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
+		"\t-o Use optimal decimate but works only well with 1 receiver (default: disabled)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n"
 		"Remark: These settings are for use without upconverter, if you use an upconverter try -A-28\n"
@@ -719,7 +722,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:WLTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:WLTvDBoR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -770,6 +773,9 @@ int main(int argc, char **argv)
 			break;
 		case 'R':
 			enable_refout = 1;
+			break;
+		case 'o':
+			opt_deci = 1;
 			break;
 		case 'v':
 			verbose = 1;
