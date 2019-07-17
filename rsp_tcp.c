@@ -135,7 +135,7 @@ static volatile int do_exit = 0;
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
 #define MAX_DECIMATION_FACTOR 64
-#define OPTIMAL_DECIMATION 1
+#define OPTIMAL_DECIMATION 0
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -160,7 +160,7 @@ static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int bit_depth = 8;
-static int opt_deci = 0;
+static int opt_deci = OPTIMAL_DECIMATION;
 
 
 #ifdef _WIN32
@@ -244,11 +244,11 @@ void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChange
                         if (sample_format == RSP_TCP_SAMPLE_FORMAT_INT16) {
                                 rpt->data = (char*)malloc(4 * numSamples);
 
-                                short *data;
+				short *data;
                                 data = (short*)rpt->data;
                                 for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                        *(data++) = *xi;
-                                        *(data++) = *xq;
+                                    *(data++) = *xi;
+                                    *(data++) = *xq;
                                 }
 
                                 rpt->len = 4 * numSamples;
@@ -440,7 +440,7 @@ static int set_sample_rate(uint32_t sr)
                 return -1;
         }
 
-	else if (sr < 3000000 && opt_deci == 1)
+	else if (sr < 2000000 && opt_deci == 1)
         {
                 int c = 0;
 
@@ -450,7 +450,7 @@ static int set_sample_rate(uint32_t sr)
 
 		deci = 1 << c;
 
-		if (sr >= 1536000 && sr < 3000000)
+		if (sr >= 2000000 && sr < 3000000)
                 {
                         bwType = mir_sdr_BW_5_000;
                 }
@@ -469,59 +469,35 @@ static int set_sample_rate(uint32_t sr)
         }
         else
         {
-                if (sr == 2048000)
+                if (sr == 2048000 || sr == 2880000)
                 {
                         deci = 1;
+                        bwType = mir_sdr_BW_5_000;
+                }
+                else if (sr == 1024000 || sr == 1536000)
+                {
+                        deci = 2;
                         bwType = mir_sdr_BW_1_536;
                 }
-		else
-                if (sr == 2880000)
+                else if (sr == 512000)
                 {
-                        deci = 1;
-                        bwType = mir_sdr_BW_1_536;
+                        deci = 4;
+                        bwType = mir_sdr_BW_0_600;
                 }
-                else
-                if (sr >= 8000000 && sr <= 10000000)
+                else if (sr == 256000)
                 {
-			deci = 1;
-                        bwType = mir_sdr_BW_8_000;
+                        deci = 8;
+                        bwType = mir_sdr_BW_0_600;
                 }
-                else
-                if (sr >= 7000000 && sr < 8000000)
+                else if (sr == 128000)
                 {
-			deci = 1;
-                        bwType = mir_sdr_BW_8_000;
+                        deci = 16;
+                        bwType = mir_sdr_BW_0_200;
                 }
-                else
-                if (sr >= 6000000 && sr < 7000000)
+                else if (sr == 64000)
                 {
-			deci = 1;
-                        bwType = mir_sdr_BW_7_000;
-                }
-                else if (sr >= 5000000 && sr < 6000000)
-		{
-			deci = 1;
-                        bwType = mir_sdr_BW_6_000;
-                }
-                else if (sr >= 4000000 && sr < 5000000)
-                {
-                        deci = 2;
-                        bwType = mir_sdr_BW_5_000;
-                }
-                else if (sr >= 3500000 && sr < 4000000)
-                {
-                        deci = 2;
-                        bwType = mir_sdr_BW_5_000;
-                }
-                else if (sr >= 3000000 && sr < 3500000)
-                {
-                        deci = 2;
-                        bwType = mir_sdr_BW_5_000;
-                }
-                else if (sr >= 2500000 && sr < 3000000)
-                {
-                        deci = 2;
-                        bwType = mir_sdr_BW_5_000;
+                        deci = 32;
+                        bwType = mir_sdr_BW_0_200;
                 }
                 else
                 {
