@@ -658,6 +658,7 @@ void usage(void)
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W widebandfilters enable* (default: disabled)\n"
+		"\t-i IFtype (default 2048 / values 0-450-1620-2048)\n"
 		"\t-A Auto Gain Control (default: -38 / values 0 to -60)\n"
 		"\t-n max number of linked list buffers to keep (default: 1024)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
@@ -698,7 +699,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:WLTvDBoR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:WLTvDBoR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -732,6 +733,10 @@ int main(int argc, char **argv)
 		case 'n':
 			llbuf_num = atoi(optarg);
 			break;
+		case 'i':
+                        ifmode = atoi(optarg);
+                        break;
+
                 case 'W':
                         wideband = 1;
                         break;
@@ -924,7 +929,7 @@ int main(int argc, char **argv)
 		pthread_attr_destroy(&attr);
 */
 		// initialise API and start the rx
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, mir_sdr_IF_Zero, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, ifmode, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);

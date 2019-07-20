@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(rsp_tcp VERSION 0.4.1)
+project(rsp_tcp VERSION 0.4.2)
 
 #find_library(USB_LIBRARY NAMES usb usb-1.0)
 find_package(Threads REQUIRED)
@@ -32,8 +32,8 @@ install(TARGETS rsp_tcp DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_VENDOR "Bas ON5HB")
-set(CPACK_PACKAGE_CONTACT "Bas ON5HB (on5hb@heppen.be)")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR for websdr.org servers")
+set(CPACK_PACKAGE_CONTACT "Bas ON5HB (bas@heppen.be)")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "a rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR to be used for websdr.org servers")
 set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
