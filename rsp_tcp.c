@@ -658,7 +658,7 @@ void usage(void)
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W widebandfilters enable* (default: disabled)\n"
-		"\t-i IFtype (default 2048 / values 0-450-1620-2048)\n"
+		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
 		"\t-A Auto Gain Control (default: -38 / values 0 to -60)\n"
 		"\t-n max number of linked list buffers to keep (default: 1024)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
