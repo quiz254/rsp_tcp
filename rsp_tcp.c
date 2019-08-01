@@ -27,7 +27,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -119,7 +118,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 1024;
+static int llbuf_num = 32768;
 static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
@@ -352,13 +351,14 @@ static void *tcp_worker(void *arg)
 }
 
 // gain reduction list in back order to emulate R820T gain
+//--bas--
 const int gain_list[] = { 78, 75, 72, 69, 66, 63, 60, 57, 54, 51, 48, 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0 };
 
 static int set_gain_by_index(unsigned int index)
 {
 	int r;
-	
-	gainReduction = gain_list[index];
+
+//	gainReduction = gain_list[index];
 	r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
 	if (r != mir_sdr_Success) {
 		printf("set gain reduction error (%d)\n", r);
@@ -366,6 +366,7 @@ static int set_gain_by_index(unsigned int index)
 	last_gain_idx = index;
 	return r;
 }
+//end gain reduction
 
 static int set_tuner_gain_mode(unsigned int mode)
 {
@@ -440,7 +441,7 @@ static int set_sample_rate(uint32_t sr)
                 return -1;
         }
 
-	else if (sr < 2000000 && opt_deci == 1)
+	else if (sr < 3000000 && opt_deci == 1)
         {
                 int c = 0;
 
@@ -660,7 +661,7 @@ void usage(void)
 		"\t-W widebandfilters enable* (default: disabled)\n"
 		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
 		"\t-A Auto Gain Control (default: -38 / values 0 to -60)\n"
-		"\t-n max number of linked list buffers to keep (default: 1024)\n"
+		"\t-n max number of linked list buffers to keep (default: 32768)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
 		"\t-o Use optimal decimate but works only well with 1 receiver (default: disabled)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
