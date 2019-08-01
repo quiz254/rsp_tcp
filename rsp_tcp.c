@@ -459,7 +459,11 @@ static int set_sample_rate(uint32_t sr)
                 {
                         bwType = mir_sdr_BW_1_536;
                 }
-                else if (sr >= 200000 && sr < 600000)
+                else if (sr >= 300000 && sr < 600000)
+                {
+                        bwType = mir_sdr_BW_0_600;
+                }
+                else if (sr >= 200000 && sr < 300000)
                 {
                         bwType = mir_sdr_BW_0_600;
                 }
@@ -488,7 +492,7 @@ static int set_sample_rate(uint32_t sr)
                 else if (sr == 256000)
                 {
                         deci = 8;
-                        bwType = mir_sdr_BW_0_600;
+                        bwType = mir_sdr_BW_0_300;
                 }
                 else if (sr == 128000)
                 {
