@@ -381,7 +381,7 @@ static int set_tuner_gain_mode(unsigned int mode)
 	}
 	else
 	{
-		r = mir_sdr_AgcControl(mir_sdr_AGC_100HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
+		r = mir_sdr_AgcControl(mir_sdr_AGC_50HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
 		printf("agc enabled\n");
 	}
 	if (r != mir_sdr_Success) {
@@ -436,17 +436,17 @@ static int set_sample_rate(uint32_t sr)
 	double f;
 	int deci = 1;
 
-	if (sr < (2000000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
+	if (sr < (2048000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
                 printf("sample rate %u is not supported\n", sr);
                 return -1;
         }
 
-	else if (sr < 3000000 && opt_deci == 1)
+	else if (sr < 2048000 && opt_deci == 1)
         {
                 int c = 0;
 
                 // Find best decimation factor
-                while (sr * (1 << c) < 3000000 && (1 << c) < MAX_DECIMATION_FACTOR) {
+                while (sr * (1 << c) < 2048000 && (1 << c) < MAX_DECIMATION_FACTOR) {
                         c++; }
 
 		deci = 1 << c;
@@ -846,8 +846,8 @@ int main(int argc, char **argv)
 	// disable decimation and  set decimation factor to 4
 	mir_sdr_DecimateControl(0, 1, 0);
 	// enable AGC with a setPoint of -30dBfs
-	mir_sdr_AgcControl(mir_sdr_AGC_100HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
-
+//	mir_sdr_AgcControl(mir_sdr_AGC_100HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
+	mir_sdr_AgcControl(mir_sdr_AGC_50HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
 
 #ifndef _WIN32
 	sigact.sa_handler = sighandler;
