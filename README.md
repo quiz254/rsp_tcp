@@ -36,7 +36,7 @@ Usage:
 	
 	-R Refclk output enable* (default: disabled)
 	
-	-f frequency to tune to (Hz) - If freq set progfreq is ignored!!
+	-f frequency to tune to (Hz) - If freq set center/prog freq is ignored from client!!
 	
 	-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!
 	
