@@ -129,7 +129,7 @@ static volatile int do_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -38
-#define DEFAULT_GAIN_REDUCTION 54
+#define DEFAULT_GAIN_REDUCTION 50
 #define DEFAULT_LNA 1
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
@@ -149,6 +149,7 @@ static int wideband = DEFAULT_WIDEBAND;
 static int ifmode = IF_MODE;
 static rsp_tcp_sample_format_t sample_format = RSP_TCP_SAMPLE_FORMAT_UINT8;
 static int sample_shift = 2;
+static int agctype = 5;
 
 ////waardes
 static int devAvail = 0;
@@ -160,7 +161,7 @@ static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int bit_depth = 8;
 static int opt_deci = OPTIMAL_DECIMATION;
-
+static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tv, void* ignored)
@@ -359,7 +360,9 @@ static int set_gain_by_index(unsigned int index)
 	int r;
 
 //	gainReduction = gain_list[index];
-	r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
+//r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
+// Changed by PA0SIM ===========================================
+	r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, mir_sdr_CHANGE_GR);
 	if (r != mir_sdr_Success) {
 		printf("set gain reduction error (%d)\n", r);
 	}
@@ -374,14 +377,16 @@ static int set_tuner_gain_mode(unsigned int mode)
 
 	if (mode)
 	{
-		r = mir_sdr_AgcControl(mir_sdr_AGC_DISABLE, agcSetPoint, 0, 0, 0, 0, rspLNA);
+		r = mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
 		r = set_gain_by_index(last_gain_idx);
 		printf("agc disabled\n");
 		set_gain_by_index(last_gain_idx);
 	}
 	else
 	{
-		r = mir_sdr_AgcControl(mir_sdr_AGC_50HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
+//r = mir_sdr_AgcControl(mir_sdr_AGC_100HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
+// Changes by PA0SIM =======================================
+		r = mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
 		printf("agc enabled\n");
 	}
 	if (r != mir_sdr_Success) {
@@ -396,12 +401,12 @@ static int set_agc_mode(unsigned int mode)
 
 	if (mode)
 	{
-		rspLNA = 1;
+		//rspLNA = 1;
 		printf("enable LNA\n");
 	}
 	else
 	{
-		rspLNA = 0;
+		//rspLNA = 0;
 		printf("disable LNA\n");
 	}
 	r = set_gain_by_index(last_gain_idx);
@@ -506,20 +511,23 @@ static int set_sample_rate(uint32_t sr)
                 }
                 else
                 {
-                        bwType = mir_sdr_BW_1_536;
+                printf("sample rate %u is not supported\n", sr);
+                return -1;
                 }
 	}
 
 	f = (double)(sr * deci);
 
 	if (deci == 1 )
-		mir_sdr_DecimateControl(0, 2, wideband);
+                mir_sdr_DecimateControl(0, 2, wideband);
 	else
 		mir_sdr_DecimateControl(1, deci, wideband);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
-	r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, ifmode, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE);
+//r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, ifmode, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE);
+// Changes by PA0SIM ===========================
+	r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, ifmode, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE | mir_sdr_CHANGE_IF_TYPE);
 	if (r != mir_sdr_Success) {
 		printf("set sample rate error (%d)\n", r);
 	}
@@ -654,8 +662,8 @@ void usage(void)
 		"\t-p listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 54  / values 0 upto 78)\n"
-		"\t-L Low Noise Amplifier* (default: enabled)\n"
+		"\t-r Gain reduction (default: 50  / values 20 upto 59)\n"
+		"\t-L Low Noise Amplifier (default: 1 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
@@ -664,7 +672,8 @@ void usage(void)
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W widebandfilters enable* (default: disabled)\n"
 		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
-		"\t-A Auto Gain Control (default: -38 / values 0 to -60)\n"
+		"\t-A Auto Gain Control Setpoint (default: -38 / values 0 to -60)\n"
+		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n max number of linked list buffers to keep (default: 32768)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
 		"\t-o Use optimal decimate but works only well with 1 receiver (default: disabled)\n"
@@ -704,7 +713,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:WLTvDBoR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:L:G:WTvDBoR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -746,8 +755,11 @@ int main(int argc, char **argv)
                         wideband = 1;
                         break;
 		case 'L':
-			rspLNA = 0;
+			rspLNA = atoi(optarg); // Change by PA0SIM
 			break;
+                case 'G':
+                        agctype = atoi(optarg);
+                        break;
 		case 'T':
 			enable_biastee = 1;
 			break;
@@ -771,6 +783,14 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+
+	if (agctype == 5) agc_type = mir_sdr_AGC_5HZ;
+	else if (agctype == 50) agc_type = mir_sdr_AGC_50HZ;
+	else if (agctype == 100) agc_type = mir_sdr_AGC_100HZ;
+	else { agc_type = mir_sdr_AGC_DISABLE;
+		agctype = 0;}
+
+	if (gainReduction < 20 || gainReduction > 59) gainReduction = 54;
 
         if (bit_depth != 8 && bit_depth != 16) {
                 usage();
@@ -844,10 +864,10 @@ int main(int argc, char **argv)
 	// enable DC offset and IQ imbalance correction
 	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	// disable decimation and  set decimation factor to 4
-	mir_sdr_DecimateControl(0, 1, 0);
+	mir_sdr_DecimateControl(0, 4, 0);
 	// enable AGC with a setPoint of -30dBfs
-//	mir_sdr_AgcControl(mir_sdr_AGC_100HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
-	mir_sdr_AgcControl(mir_sdr_AGC_50HZ, agcSetPoint, 0, 0, 0, 0, rspLNA);
+	mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
+
 
 #ifndef _WIN32
 	sigact.sa_handler = sighandler;
@@ -913,6 +933,9 @@ int main(int argc, char **argv)
 		setsockopt(s, SOL_SOCKET, SO_LINGER, (char *)&ling, sizeof(ling));
 
 		printf("client accepted!\n");
+		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
+		printf("Low-Noise-Amp mode set %u (0=max 9=min)\n", rspLNA);
+		printf("Gain-Reduction set %u\n" , gainReduction);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
@@ -934,7 +957,9 @@ int main(int argc, char **argv)
 		pthread_attr_destroy(&attr);
 */
 		// initialise API and start the rx
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, ifmode, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+//r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, mir_sdr_IF_Zero, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+// Changes by PA0SIM =============================
+		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, mir_sdr_IF_Zero, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);
