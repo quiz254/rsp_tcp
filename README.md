@@ -86,7 +86,7 @@ Usage:
  - Version 0.1.4: Added extra options Bas.
  - Version 0.1.5: Added Decimate factor, has to be tested.
  - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
- - Version 0.2.4: Removed Decimate option - supported rates 62500/128000/256000/512000/1024000/2048000/2880000 (tested modes)
+ - Version 0.2.4: Removed Decimate option - supported rates 64000/128000/256000/512000/1024000/1536000/2048000/2880000 (tested modes)
  - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
  - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
  - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
@@ -98,7 +98,7 @@ Usage:
  - Version 0.3.6: Set default settings for use without upconverter. Tested on HF.
  - Version 0.3.7: Set compiler to use -Ofast to run faster, seems to give lower CPU-load but I/Q output is the same.
  - Version 0.4.0: Made -o Optimal Decimate, works very well if you have just 1 receiver. You can regulate the max level in the source, it's set to 64, but if you want less, just set it 2 or 4, any even number between 2 to 64
- - Version 0.4.1: Supported SR: 32000/64000/128000/256000/512000/1024000/1536000/2048000/2880000 and standard set to minimal decimate needed, if you want possible other rates, use -o switch also for optimal decimate. Also noticed that best results are gotten with NoElec 125MHz upconverter for low bands, without loads of noise and fake signals are present because of the wide filters we use for websdr.org.
+ - Version 0.4.1: Supported SR: 64000/128000/256000/512000/1024000/1536000/2048000/2880000 and standard set to minimal decimate needed, if you want possible other rates, use -o switch also for optimal decimate. Also noticed that best results are gotten with NoElec 125MHz upconverter for low bands, without loads of noise and fake signals are present because of the wide filters we use for websdr.org.
  - Version 0.4.2: Possibility so select the IF-mode.
  - Version 0.4.3: Fixed gain-reduction-control, didn't work, now it does.
  - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM. 
