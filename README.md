@@ -24,9 +24,9 @@ Usage:
 	
 	-P Antenna Port select* (0/1/2, default: 0, Port A)
 	
-	-r Gain reduction (default: 54 / values 0 upto 78)
+	-r Gain reduction (default: 50 / values 0 upto 59)
 	
-	-L Low Noise Amplifier* (default: enabled)
+	-L Low Noise Amplifier (default: 1 / values 0-9)
 	
 	-T Bias-T enable* (default: disabled)
 	
@@ -45,6 +45,8 @@ Usage:
 	-i IFtype (default 0 / values 0-450-1620-2048)
 	
 	-A Auto Gain Control (default: -38 / values 0 to -60)
+	
+	-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)
 	
 	-n max number of linked list buffers to keep (default: 16384)
 	
@@ -99,6 +101,7 @@ Usage:
  - Version 0.4.1: Supported SR: 32000/64000/128000/256000/512000/1024000/1536000/2048000/2880000 and standard set to minimal decimate needed, if you want possible other rates, use -o switch also for optimal decimate. Also noticed that best results are gotten with NoElec 125MHz upconverter for low bands, without loads of noise and fake signals are present because of the wide filters we use for websdr.org.
  - Version 0.4.2: Possibility so select the IF-mode.
  - Version 0.4.3: Fixed gain-reduction-control, didn't work, now it does.
+ - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
