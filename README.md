@@ -101,7 +101,8 @@ Usage:
  - Version 0.4.1: Supported SR: 32000/64000/128000/256000/512000/1024000/1536000/2048000/2880000 and standard set to minimal decimate needed, if you want possible other rates, use -o switch also for optimal decimate. Also noticed that best results are gotten with NoElec 125MHz upconverter for low bands, without loads of noise and fake signals are present because of the wide filters we use for websdr.org.
  - Version 0.4.2: Possibility so select the IF-mode.
  - Version 0.4.3: Fixed gain-reduction-control, didn't work, now it does.
- - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM
+ - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM. 
+ AGC can be set, default 5Hz.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
