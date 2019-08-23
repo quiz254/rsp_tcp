@@ -103,6 +103,7 @@ Usage:
  - Version 0.4.3: Fixed gain-reduction-control, didn't work, now it does.
  - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM. 
  AGC can be set, default 5Hz.
+ - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
