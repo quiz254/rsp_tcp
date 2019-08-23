@@ -118,7 +118,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 32768;
+static int llbuf_num = 16384;
 static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
@@ -489,22 +489,34 @@ static int set_sample_rate(uint32_t sr)
                         deci = 2;
                         bwType = mir_sdr_BW_1_536;
                 }
+		else if (sr == 768000)
+                {
+                        deci = 4;
+                        bwType = mir_sdr_BW_1_536;
+                }
+
                 else if (sr == 512000)
                 {
                         deci = 4;
                         bwType = mir_sdr_BW_0_600;
                 }
+		else if (sr == 384000)
+                {
+                        deci = 8;
+                        bwType = mir_sdr_BW_0_600;
+                }
+
                 else if (sr == 256000)
                 {
                         deci = 8;
                         bwType = mir_sdr_BW_0_300;
                 }
-                else if (sr == 128000)
+                else if (sr == 128000 || sr == 192000)
                 {
                         deci = 16;
                         bwType = mir_sdr_BW_0_200;
                 }
-                else if (sr == 64000)
+                else if (sr == 64000 || sr == 96000)
                 {
                         deci = 32;
                         bwType = mir_sdr_BW_0_200;
@@ -674,7 +686,7 @@ void usage(void)
 		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
 		"\t-A Auto Gain Control Setpoint (default: -38 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)\n"
-		"\t-n max number of linked list buffers to keep (default: 32768)\n"
+		"\t-n max number of linked list buffers to keep (default: 16384)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
 		"\t-o Use optimal decimate but works only well with 1 receiver (default: disabled)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
