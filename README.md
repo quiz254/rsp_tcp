@@ -26,7 +26,7 @@ Usage:
 	
 	-r Gain reduction (default: 50 / values 0 upto 59)
 	
-	-L Low Noise Amplifier (default: 1 / values 0-9)
+	-L Low Noise Amplifier (default: 0 / values 0-9)
 	
 	-T Bias-T enable* (default: disabled)
 	
@@ -104,6 +104,7 @@ Usage:
  - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM. 
  AGC can be set, default 5Hz.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
+ - Version 0.4.6: LNA level 0 is optimal in most cases.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
