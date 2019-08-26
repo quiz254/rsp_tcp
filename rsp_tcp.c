@@ -130,7 +130,7 @@ static volatile int do_exit = 0;
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -38
 #define DEFAULT_GAIN_REDUCTION 50
-#define DEFAULT_LNA 1
+#define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
 #define MAX_DECIMATION_FACTOR 64
@@ -675,7 +675,7 @@ void usage(void)
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 50  / values 20 upto 59)\n"
-		"\t-L Low Noise Amplifier (default: 1 / values 0-9)\n"
+		"\t-L Low Noise Amplifier (default: 0 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
@@ -879,7 +879,6 @@ int main(int argc, char **argv)
 	mir_sdr_DecimateControl(0, 4, 0);
 	// enable AGC with a setPoint of -30dBfs
 	mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
-
 
 #ifndef _WIN32
 	sigact.sa_handler = sighandler;
