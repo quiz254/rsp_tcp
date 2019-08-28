@@ -134,7 +134,6 @@ static volatile int do_exit = 0;
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
 #define MAX_DECIMATION_FACTOR 64
-#define OPTIMAL_DECIMATION 0
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -160,7 +159,7 @@ static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int bit_depth = 8;
-static int opt_deci = OPTIMAL_DECIMATION;
+static int opt_deci = 0;
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 
 #ifdef _WIN32
@@ -441,17 +440,17 @@ static int set_sample_rate(uint32_t sr)
 	double f;
 	int deci = 1;
 
-	if (sr < (2048000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
+	if (sr < (2000000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
                 printf("sample rate %u is not supported\n", sr);
                 return -1;
         }
 
-	else if (sr < 2048000 && opt_deci == 1)
+	else if (sr < 3000000 && opt_deci == 1)
         {
                 int c = 0;
 
                 // Find best decimation factor
-                while (sr * (1 << c) < 2048000 && (1 << c) < MAX_DECIMATION_FACTOR) {
+                while (sr * (1 << c) < 3000000 && (1 << c) < MAX_DECIMATION_FACTOR) {
                         c++; }
 
 		deci = 1 << c;
