@@ -147,7 +147,6 @@ static int verbose = 0;
 static int wideband = DEFAULT_WIDEBAND;
 static int ifmode = IF_MODE;
 static rsp_tcp_sample_format_t sample_format = RSP_TCP_SAMPLE_FORMAT_UINT8;
-static int sample_shift = 2;
 static int agctype = 5;
 
 ////waardes
@@ -223,8 +222,8 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 
 void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
+//	unsigned int i;
 	if(!do_exit) {
-		unsigned int i;
 		struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		if (sample_format == RSP_TCP_SAMPLE_FORMAT_UINT8) {
                         rpt->data = (char*)malloc(2 * numSamples);
@@ -232,22 +231,31 @@ void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChange
                         // assemble the data
                         char *data;
                         data = rpt->data;
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << sample_shift) >> 8) + 128);
-                                *(data++) = (unsigned char)(((*xq << sample_shift) >> 8) + 128);
+                        //for (i = 0; i < numSamples; i++, xi++, xq++) {
+                        //        *(data++) = (unsigned char)(((*xi << sample_shift) >> 8) + 128);
+                        //        *(data++) = (unsigned char)(((*xq << sample_shift) >> 8) + 128);
+
+				for (int i = 0; i < numSamples; i++) {
+                                *(data++) = (unsigned char)(xi[i] / 64 + 127);
+                                *(data++) = (unsigned char)(xq[i] / 64 + 127);
+
                         }
 
                         rpt->len = 2 * numSamples;
                 }
-                else
-                        if (sample_format == RSP_TCP_SAMPLE_FORMAT_INT16) {
+                else if (sample_format == RSP_TCP_SAMPLE_FORMAT_INT16) {
                                 rpt->data = (char*)malloc(4 * numSamples);
 
-				short *data;
-                                data = (short*)rpt->data;
-                                for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                    *(data++) = *xi;
-                                    *(data++) = *xq;
+				char *data;
+                                data = rpt->data;
+                                for (int i = 0; i < numSamples; i++) {
+                          //          *(data++) = *xi;
+                          //          *(data++) = *xq;
+				*(data++) = (unsigned char)(xi[i] & 0xff);
+				*(data++) = (unsigned char)((xi[i] & 0xff00) >> 8);
+
+                                *(data++) = (unsigned char)(xq[i] & 0xff);
+				*(data++) = (unsigned char)((xq[i] & 0xff00) >> 8);
                                 }
 
                                 rpt->len = 4 * numSamples;
