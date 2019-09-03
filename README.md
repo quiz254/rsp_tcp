@@ -105,7 +105,7 @@ Usage:
  AGC can be set, default 5Hz.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
  - Version 0.4.6: LNA level 0 is optimal in most cases.
- - Version 0.5.0: Changed the way 8bit is being calculated, reduces CPU-load and seems to give more clear audio.
+ - Version 0.5.0: Alternative 8bit calculation is in the code, you can try that if there are many horizontal stripes.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
