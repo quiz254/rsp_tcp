@@ -222,7 +222,7 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 
 void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
-//	unsigned int i;
+	unsigned int i;
 	if(!do_exit) {
 		struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		if (sample_format == RSP_TCP_SAMPLE_FORMAT_UINT8) {
@@ -231,35 +231,34 @@ void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChange
                         // assemble the data
                         char *data;
                         data = rpt->data;
-                        //for (i = 0; i < numSamples; i++, xi++, xq++) {
-                        //        *(data++) = (unsigned char)(((*xi << sample_shift) >> 8) + 128);
-                        //        *(data++) = (unsigned char)(((*xq << sample_shift) >> 8) + 128);
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned char)(((*xi << 2) >> 8) + 128);
+                                *(data++) = (unsigned char)(((*xq << 2) >> 8) + 128);
 
-				for (int i = 0; i < numSamples; i++) {
-                                *(data++) = (unsigned char)(xi[i] / 64 + 127);
-                                *(data++) = (unsigned char)(xq[i] / 64 + 127);
+//                              alternative methode if above fails, not as good on HF.
+//				for (int i = 0; i < numSamples; i++) {
+//                                *(data++) = (uint8_t)(xi[i] / 64 + 127);
+//                                *(data++) = (uint8_t)(xq[i] / 64 + 127);
 
                         }
 
                         rpt->len = 2 * numSamples;
                 }
-                else if (sample_format == RSP_TCP_SAMPLE_FORMAT_INT16) {
-                                rpt->data = (char*)malloc(4 * numSamples);
+                else 
+		if (sample_format == RSP_TCP_SAMPLE_FORMAT_INT16) {
+				rpt->data = malloc(numSamples * 4 * sizeof(short));
 
-				char *data;
-                                data = rpt->data;
-                                for (int i = 0; i < numSamples; i++) {
-                          //          *(data++) = *xi;
-                          //          *(data++) = *xq;
-				*(data++) = (unsigned char)(xi[i] & 0xff);
-				*(data++) = (unsigned char)((xi[i] & 0xff00) >> 8);
+				short *data;
+				data = (short*)rpt->data;
+				for (int i = 0; i < numSamples; i++) {
+					*(data++) = (short)(xi[i*2]);
+					*(data++) = (short)(xq[i*2]);
+			}
 
-                                *(data++) = (unsigned char)(xq[i] & 0xff);
-				*(data++) = (unsigned char)((xq[i] & 0xff00) >> 8);
-                                }
+			rpt->len = 2 * numSamples;
+		}
 
-                                rpt->len = 4 * numSamples;
-                        }
+
 
 		rpt->next = NULL;
 
