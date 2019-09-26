@@ -73,12 +73,6 @@ typedef struct { /* structure size must be multiple of 2 bytes */
 	uint32_t tuner_gain_count;
 } dongle_info_t;
 
-typedef enum
-{
-        RSP_TCP_SAMPLE_FORMAT_UINT8 = 0x1,
-        RSP_TCP_SAMPLE_FORMAT_INT16 = 0x2
-} rsp_tcp_sample_format_t;
-
 typedef enum {
         RSP_MODEL_UNKNOWN = 0,
         RSP_MODEL_RSP1 = 1,
@@ -129,11 +123,11 @@ static volatile int do_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -38
-#define DEFAULT_GAIN_REDUCTION 50
+#define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
 #define IF_MODE 0
-#define MAX_DECIMATION_FACTOR 64
+#define MAX_DECIMATION_FACTOR 32
 
 static int devModel = 1;
 static int bwType = DEFAULT_BW_T;
@@ -142,11 +136,11 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
+static int sample_bits = 8;
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = DEFAULT_WIDEBAND;
 static int ifmode = IF_MODE;
-static rsp_tcp_sample_format_t sample_format = RSP_TCP_SAMPLE_FORMAT_UINT8;
 static int agctype = 5;
 
 ////waardes
@@ -157,8 +151,8 @@ static int enable_biastee = 0;
 static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
-static int bit_depth = 8;
 static int opt_deci = 0;
+static int deci = 1;
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 
 #ifdef _WIN32
@@ -220,45 +214,43 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 		printf("new gain reduction (%d), lna gain reduction (%d)\n", gRdB, lnaGRdB);
 }
 
-void rx_callback(short* xi, short* xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
+void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
 	unsigned int i;
 	if(!do_exit) {
 		struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-		if (sample_format == RSP_TCP_SAMPLE_FORMAT_UINT8) {
-                        rpt->data = (char*)malloc(2 * numSamples);
+		if (sample_bits == 8) {
+                        rpt->data = (char*)malloc(2 * numSamples * sizeof(int16_t));
 
                         // assemble the data
                         char *data;
                         data = rpt->data;
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << 2) >> 8) + 128);
-                                *(data++) = (unsigned char)(((*xq << 2) >> 8) + 128);
+                                *(data++) = (uint16_t)(((*xi << 2) >> 8) + 128);
+                                *(data++) = (uint16_t)(((*xq << 2) >> 8) + 128);
 
 //                              alternative methode if above fails, not as good on HF.
 //				for (int i = 0; i < numSamples; i++) {
 //                                *(data++) = (uint8_t)(xi[i] / 64 + 127);
 //                                *(data++) = (uint8_t)(xq[i] / 64 + 127);
-
                         }
 
                         rpt->len = 2 * numSamples;
                 }
                 else 
-		if (sample_format == RSP_TCP_SAMPLE_FORMAT_INT16) {
-				rpt->data = malloc(numSamples * 4 * sizeof(short));
+		if (sample_bits == 16) {
+			rpt->data = (char*)malloc(4 * numSamples * sizeof(int16_t));
 
-				short *data;
-				data = (short*)rpt->data;
-				for (int i = 0; i < numSamples; i++) {
-					*(data++) = (short)(xi[i*2]);
-					*(data++) = (short)(xq[i*2]);
-			}
+                        // assemble the data
+                        char *data;
+                        data = rpt->data;
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (uint16_t)(((*xi << 2 ) >> 14) + 8192);
+                                *(data++) = (uint16_t)(((*xq << 2 ) >> 14) + 8192);
 
-			rpt->len = 2 * numSamples;
+                        }
+			rpt->len = 4 * numSamples;
 		}
-
-
 
 		rpt->next = NULL;
 
@@ -445,22 +437,21 @@ static int set_sample_rate(uint32_t sr)
 {
 	int r;
 	double f;
-	int deci = 1;
 
 	if (sr < (2000000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
                 printf("sample rate %u is not supported\n", sr);
                 return -1;
         }
 
-	else if (sr < 3000000 && opt_deci == 1)
+	else if (sr < 5000000 && opt_deci == 1)
         {
                 int c = 0;
 
                 // Find best decimation factor
-                while (sr * (1 << c) < 3000000 && (1 << c) < MAX_DECIMATION_FACTOR) {
+                while (sr * (1 << c) < 10000000 && (1 << c) <= MAX_DECIMATION_FACTOR) {
                         c++; }
 
-		deci = 1 << c;
+		deci = 1 << (c-1);
 
 		if (sr >= 2000000 && sr < 3000000)
                 {
@@ -680,7 +671,7 @@ void usage(void)
 		"\t-p listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 50  / values 20 upto 59)\n"
+		"\t-r Gain reduction (default: 40  / values 20 upto 59)\n"
 		"\t-L Low Noise Amplifier (default: 0 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
@@ -737,7 +728,7 @@ int main(int argc, char **argv)
 			device = atoi(optarg) - 1;
 			break;
 		case 'b':
-                        bit_depth = atoi(optarg);
+                        sample_bits = atoi(optarg);
                         break;
 		case 'P':
 			antenna = atoi(optarg);
@@ -809,16 +800,6 @@ int main(int argc, char **argv)
 		agctype = 0;}
 
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = 54;
-
-        if (bit_depth != 8 && bit_depth != 16) {
-                usage();
-        }
-
-        sample_format = bit_depth == 16 ? RSP_TCP_SAMPLE_FORMAT_INT16 : RSP_TCP_SAMPLE_FORMAT_UINT8;
-
-        if (argc < optind) {
-                usage();
-        }
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
