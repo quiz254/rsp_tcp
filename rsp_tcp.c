@@ -219,7 +219,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 	if(!do_exit) {
 		struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		if (sample_bits == 8) {
-                        rpt->data = (char*)malloc(2 * numSamples * sizeof(int16_t));
+                        rpt->data = (char*)malloc(2 * numSamples);
 
                         // assemble the data
                         char *data;
@@ -238,7 +238,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                 }
                 else 
 		if (sample_bits == 16) {
-			rpt->data = (char*)malloc(4 * numSamples * sizeof(int16_t));
+			rpt->data = (char*)malloc(4 * numSamples);
 
                         // assemble the data
                         char *data;
@@ -545,7 +545,7 @@ static int set_sample_rate(uint32_t sr)
 	if (deci == 1 )
                 mir_sdr_DecimateControl(0, 2, 0);
 	else
-		mir_sdr_DecimateControl(1, deci, 0);
+		mir_sdr_DecimateControl(1, deci, 1);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
