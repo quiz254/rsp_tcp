@@ -121,7 +121,6 @@ static volatile int do_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_WIDEBAND 0
 #define DEFAULT_AGC_SETPOINT -38
 #define DEFAULT_GAIN_REDUCTION 40
 #define DEFAULT_LNA 0
@@ -139,7 +138,7 @@ static int samples_per_packet;
 static int sample_bits = 8;
 static int last_gain_idx = 0;
 static int verbose = 0;
-static int wideband = DEFAULT_WIDEBAND;
+static int wideband = 1;
 static int ifmode = IF_MODE;
 static int agctype = 5;
 
@@ -438,7 +437,7 @@ static int set_sample_rate(uint32_t sr)
 	int r;
 	double f;
 
-	if (sr < (2000000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
+	if (sr < 64000 || sr > 10000000) {
                 printf("sample rate %u is not supported\n", sr);
                 return -1;
         }
@@ -455,19 +454,24 @@ static int set_sample_rate(uint32_t sr)
 
 		if (sr >= 2000000 && sr < 3000000)
                 {
-                        bwType = mir_sdr_BW_5_000;
+			if (wideband == 1) bwType = mir_sdr_BW_5_000;
+                        else bwType = mir_sdr_BW_1_536;
                 }
 		else if (sr >= 600000 && sr < 1536000)
                 {
-                        bwType = mir_sdr_BW_1_536;
+			if (wideband == 1) bwType = mir_sdr_BW_1_536;
+                        else bwType = mir_sdr_BW_0_600;
                 }
                 else if (sr >= 300000 && sr < 600000)
                 {
-                        bwType = mir_sdr_BW_0_600;
+			if (wideband == 1) bwType = mir_sdr_BW_0_600;
+                        else bwType = mir_sdr_BW_0_300;
                 }
                 else if (sr >= 200000 && sr < 300000)
                 {
-                        bwType = mir_sdr_BW_0_600;
+			if (wideband == 1) bwType = mir_sdr_BW_0_300;
+                        else bwType = mir_sdr_BW_0_200;
+
                 }
 		else if (sr <= 200000)
                 {
@@ -478,39 +482,50 @@ static int set_sample_rate(uint32_t sr)
         {
                 if (sr == 2048000 || sr == 2880000)
                 {
-                        deci = 1;
-                        bwType = mir_sdr_BW_5_000;
+			deci = 1;
+			if (opt_deci > 1) deci = opt_deci;
+			if (wideband == 1) bwType = mir_sdr_BW_5_000;
+			else bwType = mir_sdr_BW_1_536;
                 }
                 else if (sr == 1024000 || sr == 1536000)
                 {
                         deci = 2;
-                        bwType = mir_sdr_BW_1_536;
+			if (opt_deci > 2) deci = opt_deci;
+			if (wideband == 1) bwType = mir_sdr_BW_1_536;
+                        else bwType = mir_sdr_BW_0_600;
                 }
 		else if (sr == 768000)
                 {
                         deci = 4;
-                        bwType = mir_sdr_BW_1_536;
+			if (opt_deci > 4 ) deci = opt_deci;
+			if (wideband == 1) bwType = mir_sdr_BW_1_536;
+                        else bwType = mir_sdr_BW_0_600;
                 }
-
                 else if (sr == 512000)
                 {
                         deci = 4;
-                        bwType = mir_sdr_BW_0_600;
+			if (opt_deci > 4) deci = opt_deci;
+                        if (wideband == 1) bwType = mir_sdr_BW_0_600;
+                        else bwType = mir_sdr_BW_0_300;
                 }
 		else if (sr == 384000)
                 {
                         deci = 8;
-                        bwType = mir_sdr_BW_0_600;
+			if (opt_deci > 8) deci = opt_deci;
+			if (wideband == 1) bwType = mir_sdr_BW_0_600;
+                        else bwType = mir_sdr_BW_0_300;
                 }
-
                 else if (sr == 256000)
                 {
                         deci = 8;
-                        bwType = mir_sdr_BW_0_300;
+			if (opt_deci > 8) deci = opt_deci;
+			if (wideband == 1) bwType = mir_sdr_BW_0_300;
+                        else bwType = mir_sdr_BW_0_200;
                 }
                 else if (sr == 128000 || sr == 192000)
                 {
                         deci = 16;
+			if (opt_deci > 16) deci = opt_deci;
                         bwType = mir_sdr_BW_0_200;
                 }
                 else if (sr == 64000 || sr == 96000)
@@ -528,9 +543,9 @@ static int set_sample_rate(uint32_t sr)
 	f = (double)(sr * deci);
 
 	if (deci == 1 )
-                mir_sdr_DecimateControl(0, 2, wideband);
+                mir_sdr_DecimateControl(0, 2, 0);
 	else
-		mir_sdr_DecimateControl(1, deci, wideband);
+		mir_sdr_DecimateControl(1, deci, 0);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
@@ -666,8 +681,8 @@ void usage(void)
 #ifdef SERVER_VERSION
 		"VERSION "SERVER_VERSION
 #endif
-		"\n\n"
-		"Usage:\t-a listen address\n"
+		"\n\n Usage:\n"
+		"\t-a listen address (default: 127.0.0.1)\n"
 		"\t-p listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
@@ -679,13 +694,13 @@ void usage(void)
 		"\t-R Refclk output enable* (default: disabled)\n"
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
-		"\t-W widebandfilters enable* (default: disabled)\n"
+		"\t-W wide bandfilters disable* (default: enabled)\n"
 		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
 		"\t-A Auto Gain Control Setpoint (default: -38 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n max number of linked list buffers to keep (default: 16384)\n"
 		"\t-b Sample bit-depth (8/16 default: 8)\n"
-		"\t-o Use optimal decimate but works only well with 1 receiver (default: disabled)\n"
+		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n"
 		"Remark: These settings are for use without upconverter, if you use an upconverter try -A-28\n"
@@ -722,7 +737,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:L:G:WTvDBoR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:L:o:G:WTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -759,9 +774,8 @@ int main(int argc, char **argv)
 		case 'i':
                         ifmode = atoi(optarg);
                         break;
-
                 case 'W':
-                        wideband = 1;
+                        wideband = 0;
                         break;
 		case 'L':
 			rspLNA = atoi(optarg); // Change by PA0SIM
@@ -782,7 +796,7 @@ int main(int argc, char **argv)
 			enable_refout = 1;
 			break;
 		case 'o':
-			opt_deci = 1;
+			opt_deci = atoi(optarg);
 			break;
 		case 'v':
 			verbose = 1;
