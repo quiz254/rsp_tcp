@@ -40,7 +40,7 @@ Usage:
 	
 	-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!
 	
-	-W widebandfilters enable* (default: disabled)
+	-W widebandfilters enable* (default: enabled)
 	
 	-i IFtype (default 0 / values 0-450-1620-2048)
 	
@@ -52,7 +52,7 @@ Usage:
 	
 	-b Sample bit-depth (8/16 default: 8)
 	
-	-o Use optimal decimate but works only well with 1 receiver (default: disabled)
+	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
 	-v Verbose output (debug) enable (default: disabled)
 
@@ -107,6 +107,9 @@ Usage:
  - Version 0.4.6: LNA level 0 is optimal in most cases.
  - Version 0.5.0: Alternative 8bit calculation is in the code, you can try that if there are many horizontal stripes.
  - Version 0.6.0: Probably last version, extensive testing done. Enjoy.
+ - Version 0.6.1: -o and -W have changed. -o let you use a higher decimate if wanted. -W gives a smaller bandwidth filter.
+ e.g. if 1.536MHz was default the smaller can be 600KHz. Without -W it's the normal width as before.
+ 
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
