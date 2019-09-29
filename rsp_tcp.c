@@ -215,10 +215,10 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
-	unsigned int i;
-	if(!do_exit) {
-		struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-		if (sample_bits == 8) {
+        unsigned int i;
+        if(!do_exit) {
+                struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
+                if (sample_bits == 8) {
                         rpt->data = (char*)malloc(2 * numSamples);
 
                         // assemble the data
@@ -234,7 +234,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 //                                *(data++) = (uint8_t)(xq[i] / 64 + 127);
                         }
 
-                        rpt->len = 2 * numSamples;
+                        rpt->len = numSamples * 2;
                 }
                 else 
 		if (sample_bits == 16) {
@@ -544,8 +544,10 @@ static int set_sample_rate(uint32_t sr)
 
 	if (deci == 1 )
                 mir_sdr_DecimateControl(0, 2, 0);
-	else
+	else if (deci >= 1 && sr >= 2048000 )
 		mir_sdr_DecimateControl(1, deci, 1);
+	else
+		mir_sdr_DecimateControl(1, deci, 0);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
@@ -713,7 +715,8 @@ int main(int argc, char **argv)
 	int r, opt, i;
 	char* addr = "127.0.0.1";
 	int port = 1234;
-	uint32_t frequency = 100000000, samp_rate = 2048000;
+	uint32_t frequency = 1000000;
+	uint32_t samp_rate = 2048000;
 	struct sockaddr_in local, remote;
 	struct llist *curelem,*prev;
 	pthread_attr_t attr;
@@ -876,8 +879,6 @@ int main(int argc, char **argv)
 
 	// enable DC offset and IQ imbalance correction
 	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
-	// disable decimation and  set decimation factor to 4
-	mir_sdr_DecimateControl(0, 4, 0);
 	// enable AGC with a setPoint of -30dBfs
 	mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
 
@@ -971,7 +972,7 @@ int main(int argc, char **argv)
 		// initialise API and start the rx
 //r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, mir_sdr_IF_Zero, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 // Changes by PA0SIM =============================
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, mir_sdr_IF_Zero, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, ifmode, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);
