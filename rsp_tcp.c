@@ -152,6 +152,7 @@ static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int opt_deci = 0;
 static int deci = 1;
+static int widefilter = 0;
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 
 #ifdef _WIN32
@@ -542,10 +543,12 @@ static int set_sample_rate(uint32_t sr)
 
 	f = (double)(sr * deci);
 
-	if (deci == 1 )
+	if (deci == 1 && widefilter == 0 )
                 mir_sdr_DecimateControl(0, 2, 0);
-	else
+	else if (deci >= 1 && widefilter == 1 )
 		mir_sdr_DecimateControl(1, deci, 1);
+	else
+		mir_sdr_DecimateControl(1, deci, 0);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
@@ -695,6 +698,7 @@ void usage(void)
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W wide bandfilters disable* (default: enabled)\n"
+		"\t-w wide digital filters disable* (default: disabled)\n"
 		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
 		"\t-A Auto Gain Control Setpoint (default: -38 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)\n"
@@ -738,7 +742,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:L:o:G:WTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:L:o:G:WwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -777,6 +781,9 @@ int main(int argc, char **argv)
                         break;
                 case 'W':
                         wideband = 0;
+                        break;
+                case 'w':
+                        widefilter = 1;
                         break;
 		case 'L':
 			rspLNA = atoi(optarg); // Change by PA0SIM
