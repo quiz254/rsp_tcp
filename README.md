@@ -42,6 +42,8 @@ Usage:
 	
 	-W widebandfilters enable* (default: enabled)
 	
+	-w wide digital filters disable* (default: disabled)
+	
 	-i IFtype (default 0 / values 0-450-1620-2048)
 	
 	-A Auto Gain Control (default: -38 / values 0 to -60)
