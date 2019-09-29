@@ -544,10 +544,8 @@ static int set_sample_rate(uint32_t sr)
 
 	if (deci == 1 )
                 mir_sdr_DecimateControl(0, 2, 0);
-	else if (deci >= 1 && sr >= 2048000 )
-		mir_sdr_DecimateControl(1, deci, 1);
 	else
-		mir_sdr_DecimateControl(1, deci, 0);
+		mir_sdr_DecimateControl(1, deci, 1);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
