@@ -109,6 +109,7 @@ Usage:
  - Version 0.6.0: Probably last version, extensive testing done. Enjoy.
  - Version 0.6.1: -o and -W have changed. -o let you use a higher decimate if wanted. -W gives a smaller bandwidth filter.
  e.g. if 1.536MHz was default the smaller can be 600KHz. Without -W it's the normal width as before.
+ - Version 0.6.2: Decimate on sample rates above 2.048MSPS would produce ghost-signals, made it autoselect digital-wideband, however the CPU load will go sky high! Below 2.048 it uses "external" filters. Hopefully got it right now :-)
  
  
 ## CREDITS
