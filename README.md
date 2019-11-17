@@ -113,6 +113,7 @@ Usage:
  e.g. if 1.536MHz was default the smaller can be 600KHz. Without -W it's the normal width as before.
  - Version 0.6.2: Decimate is best not used, unless you must, it will eat CPU-cycles like candy.
  - Version 0.6.3: -w introduced again, lets you set digital/analogue filters, if ghost signals are there then digital is needed.
+ - Version 0.8.0: New calculation for I/Q, default is the best, uses 15bit to 8bit, AM signals improved a lot.
  
  
 ## CREDITS
