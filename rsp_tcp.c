@@ -112,7 +112,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 16384;
+static int llbuf_num = 512;
 static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
@@ -121,11 +121,10 @@ static volatile int do_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -38
-#define DEFAULT_GAIN_REDUCTION 40
+#define DEFAULT_AGC_SETPOINT -34 // original -34
+#define DEFAULT_GAIN_REDUCTION 30 // original 34
 #define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
-#define IF_MODE 0
 #define MAX_DECIMATION_FACTOR 32
 
 static int devModel = 1;
@@ -135,12 +134,11 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static int sample_bits = 8;
+static int sample_bits = 8; // 8 or 16
 static int last_gain_idx = 0;
 static int verbose = 0;
-static int wideband = 1;
-static int ifmode = IF_MODE;
-static int agctype = 5;
+static int wideband = 0;
+static int agctype = 50;
 
 ////waardes
 static int devAvail = 0;
@@ -153,7 +151,7 @@ static int enable_refout = 0;
 static int opt_deci = 0;
 static int deci = 1;
 static int widefilter = 0;
-static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
+static int agc_type = mir_sdr_AGC_50HZ; //AGC 5-50-100HZ or DISABLE
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tv, void* ignored)
@@ -202,7 +200,7 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 {
 	if (gRdB == mir_sdr_ADC_OVERLOAD_DETECTED)
 	{
-		printf("adc overload\n");
+		printf("adc overload detected\n");
 		mir_sdr_GainChangeCallbackMessageReceived(); 
 	}
 	else if (gRdB == mir_sdr_ADC_OVERLOAD_CORRECTED)
@@ -217,40 +215,95 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
+//unsigned char datai;
+//unsigned char dataq;
+
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
                 if (sample_bits == 8) {
-                        rpt->data = (char*)malloc(2 * numSamples);
+                        rpt->data = malloc(2 * numSamples * sizeof(short));
 
                         // assemble the data
                         char *data;
                         data = rpt->data;
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (uint16_t)(((*xi << 2) >> 8) + 128);
-                                *(data++) = (uint16_t)(((*xq << 2) >> 8) + 128);
+                                *(data++) = (unsigned char)(((*xi << 1) + 16384) / 128) + 0.5;
+//datai = *data;
+                                *(data++) = (unsigned char)(((*xq << 1) + 16384) / 128) + 0.5;
+//dataq = *data;
+// print data
+//printf ("waarden van Xi %hi - Xq %hi - Datai %hi - Dataq %hi\n",*xi,*xq,datai,dataq);
 
-//                              alternative methode if above fails, not as good on HF.
-//				for (int i = 0; i < numSamples; i++) {
-//                                *(data++) = (uint8_t)(xi[i] / 64 + 127);
-//                                *(data++) = (uint8_t)(xq[i] / 64 + 127);
-                        }
-
+			}
                         rpt->len = numSamples * 2;
+
                 }
-                else 
-		if (sample_bits == 16) {
-			rpt->data = (char*)malloc(4 * numSamples);
+		else
+                if (sample_bits == 13) {
+                        rpt->data = malloc(2 * numSamples * sizeof(short));
+
+                        // assemble the data
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
+
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned char)(((*xi << 3) +4096) / 32) + 0.5;
+                                *(data++) = (unsigned char)(((*xq << 3) +4096) / 32) + 0.5;
+
+                        }
+                        rpt->len = 2 * numSamples;
+                }
+
+                else
+		if (sample_bits == 15) {
+			rpt->data = malloc(2 * numSamples * sizeof(short));
+
+                        // assemble the data
+			unsigned char *data;
+                        data = (unsigned char*)rpt->data;
+
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned char)(((*xi << 1 ) +16384) / 128) + 0.5;
+                                *(data++) = (unsigned char)(((*xq << 1 ) +16384) / 128) + 0.5;
+
+                        }
+			rpt->len = 2 * numSamples;
+		}
+                else
+                if (sample_bits == 14) {
+                        rpt->data = malloc(2 * numSamples * sizeof(short));
+
+                        // assemble the data
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
+
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned char)(((*xi << 2) +8192) / 64) + 0.5;
+                                *(data++) = (unsigned char)(((*xq << 2) +8192) / 64) + 0.5;
+
+                        }
+                        rpt->len = 2 * numSamples;
+                }
+                else
+                if (sample_bits == 16) {
+                        rpt->data = malloc(2 * numSamples * sizeof(short));
 
                         // assemble the data
                         char *data;
                         data = rpt->data;
+
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (uint16_t)(((*xi << 2 ) >> 14) + 8192);
-                                *(data++) = (uint16_t)(((*xq << 2 ) >> 14) + 8192);
+                                *(data++) = (unsigned char)(((*xi + 32678) / 256) + 0.5);
+//datai = *data;
+				*(data++) = (unsigned char)(((*xq + 32678) / 256) + 0.5);
+//dataq = *data;
+// print data
+//printf ("waarden van Xi %hi - Xq %hi - Datai %hi - Dataq %hi\n",*xi,*xq,datai,dataq);
+
 
                         }
-			rpt->len = 4 * numSamples;
-		}
+                        rpt->len = 2 * numSamples;
+                }
 
 		rpt->next = NULL;
 
@@ -378,7 +431,6 @@ static int set_tuner_gain_mode(unsigned int mode)
 		r = mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
 		r = set_gain_by_index(last_gain_idx);
 		printf("agc disabled\n");
-		set_gain_by_index(last_gain_idx);
 	}
 	else
 	{
@@ -426,7 +478,7 @@ static int set_freq(uint32_t f)
 {
 	int r;
 
-	r = mir_sdr_Reinit(&gainReduction, 0, (double)f/1e6, 0, bwType, ifmode, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_RF_FREQ);
+	r = mir_sdr_Reinit(&gainReduction, 0, (double)f/1e6, 0, bwType, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_RF_FREQ);
 	if (r != mir_sdr_Success) {
 		printf("set freq error (%d)\n", r);
 	}
@@ -483,11 +535,12 @@ static int set_sample_rate(uint32_t sr)
         {
                 if (sr == 2048000 || sr == 2880000)
                 {
-			deci = 1;
-			if (opt_deci > 1) deci = opt_deci;
-			if (wideband == 1) bwType = mir_sdr_BW_5_000;
-			else bwType = mir_sdr_BW_1_536;
+                        deci = 1;
+                        if (opt_deci > 1) deci = opt_deci;
+                        if (wideband == 1) bwType = mir_sdr_BW_5_000;
+                        else bwType = mir_sdr_BW_1_536;
                 }
+
                 else if (sr == 1024000 || sr == 1536000)
                 {
                         deci = 2;
@@ -544,17 +597,19 @@ static int set_sample_rate(uint32_t sr)
 	f = (double)(sr * deci);
 
 	if (deci == 1 && widefilter == 0 )
-                mir_sdr_DecimateControl(0, 2, 0);
-	else if (deci >= 1 && widefilter == 1 )
-		mir_sdr_DecimateControl(1, deci, 1);
+                mir_sdr_DecimateControl(0, 0, 0);
+	else if (deci == 1 && widefilter == 1 )
+		mir_sdr_DecimateControl(1, 0, 1);
+	else if (deci > 1 && widefilter == 1 )
+                mir_sdr_DecimateControl(1, deci, 1);
 	else
 		mir_sdr_DecimateControl(1, deci, 0);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
-//r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, ifmode, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE);
+//r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, 0, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE);
 // Changes by PA0SIM ===========================
-	r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, ifmode, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE | mir_sdr_CHANGE_IF_TYPE);
+	r = mir_sdr_Reinit(&gainReduction, (double)f/1e6, 0, bwType, 0, 0, 0, &infoOverallGr, 0, &samples_per_packet, mir_sdr_CHANGE_FS_FREQ | mir_sdr_CHANGE_BW_TYPE | mir_sdr_CHANGE_IF_TYPE);
 	if (r != mir_sdr_Success) {
 		printf("set sample rate error (%d)\n", r);
 	}
@@ -689,7 +744,7 @@ void usage(void)
 		"\t-p listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 40  / values 20 upto 59)\n"
+		"\t-r Gain reduction (default: 30  / values 20 upto 59)\n"
 		"\t-L Low Noise Amplifier (default: 0 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
@@ -697,17 +752,14 @@ void usage(void)
 		"\t-R Refclk output enable* (default: disabled)\n"
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
-		"\t-W wide bandfilters disable* (default: enabled)\n"
-		"\t-w wide digital filters disable* (default: disabled)\n"
-		"\t-i IFtype (default 0 / values 0-450-1620-2048)\n"
-		"\t-A Auto Gain Control Setpoint (default: -38 / values 0 to -60)\n"
-		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)\n"
-		"\t-n max number of linked list buffers to keep (default: 16384)\n"
-		"\t-b Sample bit-depth (8/16 default: 8)\n"
+		"\t-W wide bandfilters enable* (default: disabled)\n"
+		"\t-w wide digital filters enable* (default: disabled)\n"
+		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
+		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)\n"
+		"\t-n max number of linked list buffers to keep (default: 512)\n"
+		"\t-b Bit conversion to 8bit (8/13/14/15/16 default: 8)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
-		"\n\n"
-		"Remark: These settings are for use without upconverter, if you use an upconverter try -A-28\n"
 		"\n\n" );
 	exit(1);
 }
@@ -742,7 +794,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:i:L:o:G:WwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:L:o:G:WwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -776,11 +828,8 @@ int main(int argc, char **argv)
 		case 'n':
 			llbuf_num = atoi(optarg);
 			break;
-		case 'i':
-                        ifmode = atoi(optarg);
-                        break;
                 case 'W':
-                        wideband = 0;
+                        wideband = 1;
                         break;
                 case 'w':
                         widefilter = 1;
@@ -953,7 +1002,7 @@ int main(int argc, char **argv)
 		printf("client accepted!\n");
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
 		printf("Low-Noise-Amp mode set %u (0=max 9=min)\n", rspLNA);
-		printf("Gain-Reduction set %u\n" , gainReduction);
+		printf("Gain-Reduction set %u (59=max 20=min)\n", gainReduction);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
@@ -975,9 +1024,9 @@ int main(int argc, char **argv)
 		pthread_attr_destroy(&attr);
 */
 		// initialise API and start the rx
-//r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, mir_sdr_IF_Zero, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+//r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 // Changes by PA0SIM =============================
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, ifmode, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);
