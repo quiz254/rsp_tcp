@@ -134,7 +134,7 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static int sample_bits = 8; // 8 or 16
+static int sample_bits = 16; // 8 or 13 / 14 / 15 / 16
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 0;
@@ -215,30 +215,9 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-//unsigned char datai;
-//unsigned char dataq;
 
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-                if (sample_bits == 8) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        char *data;
-                        data = rpt->data;
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << 1) + 16384) / 128) + 0.5;
-//datai = *data;
-                                *(data++) = (unsigned char)(((*xq << 1) + 16384) / 128) + 0.5;
-//dataq = *data;
-// print data
-//printf ("waarden van Xi %hi - Xq %hi - Datai %hi - Dataq %hi\n",*xi,*xq,datai,dataq);
-
-			}
-                        rpt->len = numSamples * 2;
-
-                }
-		else
                 if (sample_bits == 13) {
                         rpt->data = malloc(2 * numSamples * sizeof(short));
 
@@ -253,22 +232,6 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         }
                         rpt->len = 2 * numSamples;
                 }
-
-                else
-		if (sample_bits == 15) {
-			rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-			unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << 1 ) +16384) / 128) + 0.5;
-                                *(data++) = (unsigned char)(((*xq << 1 ) +16384) / 128) + 0.5;
-
-                        }
-			rpt->len = 2 * numSamples;
-		}
                 else
                 if (sample_bits == 14) {
                         rpt->data = malloc(2 * numSamples * sizeof(short));
@@ -284,6 +247,22 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         }
                         rpt->len = 2 * numSamples;
                 }
+		else
+                if (sample_bits == 15) {
+                        rpt->data = malloc(2 * numSamples * sizeof(short));
+
+                        // assemble the data
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
+
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned char)(((*xi << 1 ) +16384) / 128) + 0.5;
+                                *(data++) = (unsigned char)(((*xq << 1 ) +16384) / 128) + 0.5;
+
+                        }
+                        rpt->len = 2 * numSamples;
+                }
+
                 else
                 if (sample_bits == 16) {
                         rpt->data = malloc(2 * numSamples * sizeof(short));
@@ -294,12 +273,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
                                 *(data++) = (unsigned char)(((*xi + 32678) / 256) + 0.5);
-//datai = *data;
 				*(data++) = (unsigned char)(((*xq + 32678) / 256) + 0.5);
-//dataq = *data;
-// print data
-//printf ("waarden van Xi %hi - Xq %hi - Datai %hi - Dataq %hi\n",*xi,*xq,datai,dataq);
-
 
                         }
                         rpt->len = 2 * numSamples;
@@ -744,7 +718,7 @@ void usage(void)
 		"\t-p listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 30  / values 20 upto 59)\n"
+		"\t-r Gain reduction (default: 32  / values 20 upto 59)\n"
 		"\t-L Low Noise Amplifier (default: 0 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
@@ -757,7 +731,7 @@ void usage(void)
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)\n"
 		"\t-n max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bit conversion to 8bit (8/13/14/15/16 default: 8)\n"
+		"\t-b Bit conversion to 8bit (13/14/15/16 default: 16)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
