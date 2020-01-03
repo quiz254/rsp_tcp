@@ -8,7 +8,7 @@
 
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
 
-As the rtl_tcp protocol is only 8 bits IQ, man will loose the major advantage of an RSP : its 14bits ADC, but :
+As the rtl_tcp protocol is only 8 bits IQ it still uses the 16bit range, but you can reduce it:
 
 1. It will work with any rtl_tcp capable frontend (probably), see usage below
 2. As it's opensource, you could compile it on any Linux server
@@ -24,7 +24,7 @@ Usage:
 	
 	-P Antenna Port select* (0/1/2, default: 0, Port A)
 	
-	-r Gain reduction (default: 40 / values 0 upto 59)
+	-r Gain reduction (default: 32 / values 0 upto 59)
 	
 	-L Low Noise Amplifier (default: 0 / values 0-9)
 	
@@ -44,15 +44,13 @@ Usage:
 	
 	-w wide digital filters disable* (default: disabled)
 	
-	-i IFtype (default 0 / values 0-450-1620-2048)
+	-A Auto Gain Control (default: -34 / values 0 to -60)
 	
-	-A Auto Gain Control (default: -38 / values 0 to -60)
+	-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)
 	
-	-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)
+	-n max number of linked list buffers to keep (default: 512)
 	
-	-n max number of linked list buffers to keep (default: 16384)
-	
-	-b Sample bit-depth (8/16 default: 8)
+	-b Bit conversion to 8bit (13/14/15/16 default: 16)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
@@ -114,6 +112,7 @@ Usage:
  - Version 0.6.2: Decimate is best not used, unless you must, it will eat CPU-cycles like candy.
  - Version 0.6.3: -w introduced again, lets you set digital/analogue filters, if ghost signals are there then digital is needed.
  - Version 0.8.0: New calculation for I/Q, default is the best, uses 15bit to 8bit, AM signals improved a lot.
+ - Version 1.0.0: 16bit to 8bit conversion is now default, minor tweaks. It should work out of the box in most cases.
  
  
 ## CREDITS
