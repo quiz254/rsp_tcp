@@ -122,8 +122,8 @@ static volatile int do_exit = 0;
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -34 // original -34
-#define DEFAULT_GAIN_REDUCTION 30 // original 34
-#define DEFAULT_LNA 0
+#define DEFAULT_GAIN_REDUCTION 34 // original 34
+#define DEFAULT_LNA 2
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -134,7 +134,7 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static int sample_bits = 16; // 8 or 13 / 14 / 15 / 16
+static int sample_bits = 15; // 8 or 13 / 14 / 15 / 16
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 0;
@@ -718,8 +718,8 @@ void usage(void)
 		"\t-p listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 32  / values 20 upto 59)\n"
-		"\t-L Low Noise Amplifier (default: 0 / values 0-9)\n"
+		"\t-r Gain reduction (default: 34  / values 20 upto 59)\n"
+		"\t-L Low Noise Amplifier (default: 2 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
@@ -731,7 +731,7 @@ void usage(void)
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)\n"
 		"\t-n max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bit conversion to 8bit (13/14/15/16 default: 16)\n"
+		"\t-b Bit conversion to 8bit (13/14/15/16 default: 15)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
