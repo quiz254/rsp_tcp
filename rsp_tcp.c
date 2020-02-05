@@ -218,8 +218,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
         unsigned int i;
 
 // I/Q value reader - if enabled show values
-if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
-printf("xi=%hd,xq=%hd\n",*xi,*xq);}
+//if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
+//printf("xi=%hd,xq=%hd\n",*xi,*xq);}
 
 
         if(!do_exit) {
