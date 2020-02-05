@@ -123,7 +123,7 @@ static volatile int do_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -34 // original -34
 #define DEFAULT_GAIN_REDUCTION 34 // original 34
-#define DEFAULT_LNA 2
+#define DEFAULT_LNA 0
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -134,11 +134,12 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static int sample_bits = 15; // 8 or 13 / 14 / 15 / 16
+static int sample_bits = 1; // 8 or 13 / 14 / 15 / 16
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 0;
-static int agctype = 50;
+static int dcoffset = 3;
+static int agctype = 5;
 
 ////waardes
 static int devAvail = 0;
@@ -208,13 +209,18 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 		printf("adc overload corrected\n");
 		mir_sdr_GainChangeCallbackMessageReceived(); 
 	}
-	else if (verbose)
+	if (verbose)
 		printf("new gain reduction (%d), lna gain reduction (%d)\n", gRdB, lnaGRdB);
 }
 
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
+
+// I/Q value reader - if enabled show values
+if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
+printf("xi=%hd,xq=%hd\n",*xi,*xq);}
+
 
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
@@ -226,8 +232,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << 3) +4096) / 32) + 0.5;
-                                *(data++) = (unsigned char)(((*xq << 3) +4096) / 32) + 0.5;
+                                *(data++) = (unsigned short)(((*xi << 3) +4096) / 32) + 0.5;
+                                *(data++) = (unsigned short)(((*xq << 3) +4096) / 32) + 0.5;
 
                         }
                         rpt->len = 2 * numSamples;
@@ -241,8 +247,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << 2) +8192) / 64) + 0.5;
-                                *(data++) = (unsigned char)(((*xq << 2) +8192) / 64) + 0.5;
+                                *(data++) = (unsigned short)(((*xi << 2) +8192) / 64) + 0.5;
+                                *(data++) = (unsigned short)(((*xq << 2) +8192) / 64) + 0.5;
 
                         }
                         rpt->len = 2 * numSamples;
@@ -256,9 +262,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi << 1 ) +16384) / 128) + 0.5;
-                                *(data++) = (unsigned char)(((*xq << 1 ) +16384) / 128) + 0.5;
-
+                                *(data++) = (unsigned short)(((*xi << 1 ) +16384) / 128) + 0.5;
+                                *(data++) = (unsigned short)(((*xq << 1 ) +16384) / 128) + 0.5;
                         }
                         rpt->len = 2 * numSamples;
                 }
@@ -268,12 +273,28 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         rpt->data = malloc(2 * numSamples * sizeof(short));
 
                         // assemble the data
-                        char *data;
-                        data = rpt->data;
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned char)(((*xi + 32678) / 256) + 0.5);
-				*(data++) = (unsigned char)(((*xq + 32678) / 256) + 0.5);
+                                *(data++) = (unsigned short)(((*xi + 32678) / 256) + 0.5);
+				*(data++) = (unsigned short)(((*xq + 32678) / 256) + 0.5);
+
+                        }
+                        rpt->len = 2 * numSamples;
+                }
+
+                else
+                if (sample_bits == 1) {
+                        rpt->data = malloc(2 * numSamples * sizeof(short));
+
+                        // assemble the data
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
+
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned short)((((*xi << 2 ) + 32768) / 256) + 0.5);
+                                *(data++) = (unsigned short)((((*xq << 2 ) + 32768) / 256) + 0.5);
 
                         }
                         rpt->len = 2 * numSamples;
@@ -304,12 +325,12 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 			}
 
 			cur->next = rpt;
-			if (verbose) {
-				if (num_queued > global_numq)
-					printf("ll+, now %d\n", num_queued);
-				else if (num_queued < global_numq)
-					printf("ll-, now %d\n", num_queued);
-			}
+//			if (verbose) {
+//				if (num_queued > global_numq)
+//					printf("ll+, now %d\n", num_queued);
+//				else if (num_queued < global_numq)
+//					printf("ll-, now %d\n", num_queued);
+//			}
 			global_numq = num_queued;
 		}
 		pthread_cond_signal(&cond);
@@ -570,14 +591,12 @@ static int set_sample_rate(uint32_t sr)
 
 	f = (double)(sr * deci);
 
-	if (deci == 1 && widefilter == 0 )
-                mir_sdr_DecimateControl(0, 0, 0);
-	else if (deci == 1 && widefilter == 1 )
-		mir_sdr_DecimateControl(1, 0, 1);
-	else if (deci > 1 && widefilter == 1 )
-                mir_sdr_DecimateControl(1, deci, 1);
-	else
-		mir_sdr_DecimateControl(1, deci, 0);
+	if (deci == 0 )
+                mir_sdr_DecimateControl(0, 0, widefilter);
+	else if (deci == 1 )
+		mir_sdr_DecimateControl(1, 0, widefilter);
+	else if (deci > 1 )
+                mir_sdr_DecimateControl(1, deci, widefilter);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
@@ -731,7 +750,7 @@ void usage(void)
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)\n"
 		"\t-n max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bit conversion to 8bit (13/14/15/16 default: 15)\n"
+		"\t-b Bit conversion to 8bit (13/14/15/16 default:1 latest try)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
@@ -1009,7 +1028,7 @@ int main(int argc, char **argv)
 		fprintf(stderr,"started rx\n");
 
 		// set the DC offset correction mode for the tuner
-		mir_sdr_SetDcMode(4, 0);
+		mir_sdr_SetDcMode(dcoffset, 0);
 		// set the time period over which the DC offset is tracked when in one shot mode.
 		mir_sdr_SetDcTrackTime(63);
 		// set Bias-T
