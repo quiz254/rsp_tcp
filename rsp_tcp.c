@@ -724,7 +724,7 @@ void usage(void)
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 100 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bits used for conversion to 8bit (default:15 / values 14/15/16)\n"
+		"\t-b Bits used for conversion to 8bit (default:14 / values 14/15/16)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
