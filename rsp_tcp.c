@@ -134,12 +134,11 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static int sample_bits = 1; // 8 or 13 / 14 / 15 / 16
+static int sample_bits = 15; // 14 - 15 -16 bits used for conversion to 8 bit
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 0;
 static int dcoffset = 3;
-static int agctype = 5;
 
 ////waardes
 static int devAvail = 0;
@@ -152,7 +151,10 @@ static int enable_refout = 0;
 static int opt_deci = 0;
 static int deci = 1;
 static int widefilter = 0;
-static int agc_type = mir_sdr_AGC_50HZ; //AGC 5-50-100HZ or DISABLE
+
+////AGC beware to change all!
+static int agc_type = mir_sdr_AGC_100HZ; //AGC 5-50-100HZ or DISABLE
+static int agctype = 100; // just the number of above
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tv, void* ignored)
@@ -216,7 +218,7 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-
+//	unsigned char iout,qout;
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
 //printf("xi=%hd,xq=%hd\n",*xi,*xq);}
@@ -224,22 +226,36 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-                if (sample_bits == 13) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
+
+
+// check sample_bit
+		if (sample_bits == 15) {
+	                rpt->data = malloc(2 * numSamples * sizeof(short));
 
                         // assemble the data
                         unsigned char *data;
                         data = (unsigned char*)rpt->data;
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned short)(((*xi << 3) +4096) / 32) + 0.5;
-                                *(data++) = (unsigned short)(((*xq << 3) +4096) / 32) + 0.5;
+                                *(data++) = (unsigned char)(((((*xi << 1 ) / 2 ) +16384) / 128) + 0.5);
+                                *(data++) = (unsigned char)(((((*xq << 1 ) / 2 ) +16384) / 128) + 0.5);
+                        }
+                        rpt->len = 2 * numSamples;
+		}
+		else if (sample_bits == 14) {
+			rpt->data = malloc(2 * numSamples * sizeof(short));
 
+                        // assemble the data
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
+
+                        for (i = 0; i < numSamples; i++, xi++, xq++) {
+                                *(data++) = (unsigned char)(((((*xi << 2 ) / 4 ) +8192) / 64) + 0.5);
+                                *(data++) = (unsigned char)(((((*xq << 2 ) / 4 ) +8192) / 64) + 0.5);
                         }
                         rpt->len = 2 * numSamples;
                 }
-                else
-                if (sample_bits == 14) {
+		else if (sample_bits == 16) {
                         rpt->data = malloc(2 * numSamples * sizeof(short));
 
                         // assemble the data
@@ -247,55 +263,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
                         for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned short)(((*xi << 2) +8192) / 64) + 0.5;
-                                *(data++) = (unsigned short)(((*xq << 2) +8192) / 64) + 0.5;
-
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-		else
-                if (sample_bits == 15) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned short)(((*xi << 1 ) +16384) / 128) + 0.5;
-                                *(data++) = (unsigned short)(((*xq << 1 ) +16384) / 128) + 0.5;
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else
-                if (sample_bits == 16) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned short)(((*xi + 32678) / 256) + 0.5);
-				*(data++) = (unsigned short)(((*xq + 32678) / 256) + 0.5);
-
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else
-                if (sample_bits == 1) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                *(data++) = (unsigned short)((((*xi << 2 ) + 32768) / 256) + 0.5);
-                                *(data++) = (unsigned short)((((*xq << 2 ) + 32768) / 256) + 0.5);
-
+                                *(data++) = (unsigned char)(((*xi +32768) / 256) + 0.5);
+                                *(data++) = (unsigned char)(((*xq +32768) / 256) + 0.5);
                         }
                         rpt->len = 2 * numSamples;
                 }
@@ -325,12 +294,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 			}
 
 			cur->next = rpt;
-//			if (verbose) {
-//				if (num_queued > global_numq)
-//					printf("ll+, now %d\n", num_queued);
-//				else if (num_queued < global_numq)
-//					printf("ll-, now %d\n", num_queued);
-//			}
+
 			global_numq = num_queued;
 		}
 		pthread_cond_signal(&cond);
@@ -490,7 +454,7 @@ static int set_sample_rate(uint32_t sr)
                 return -1;
         }
 
-	else if (sr < 5000000 && opt_deci == 1)
+	else if (opt_deci == 1)
         {
                 int c = 0;
 
@@ -500,7 +464,17 @@ static int set_sample_rate(uint32_t sr)
 
 		deci = 1 << (c-1);
 
-		if (sr >= 2000000 && sr < 3000000)
+		if (sr >= 6000000)
+                {
+                        if (wideband == 1) bwType = mir_sdr_BW_8_000;
+                        else bwType = mir_sdr_BW_6_000;
+                }
+		else if (sr >= 5000000 && sr < 6000000)
+                {
+                        if (wideband == 1) bwType = mir_sdr_BW_6_000;
+                        else bwType = mir_sdr_BW_5_000;
+                }
+		else if (sr >= 2000000 && sr < 5000000)
                 {
 			if (wideband == 1) bwType = mir_sdr_BW_5_000;
                         else bwType = mir_sdr_BW_1_536;
@@ -733,11 +707,11 @@ void usage(void)
 		"VERSION "SERVER_VERSION
 #endif
 		"\n\n Usage:\n"
-		"\t-a listen address (default: 127.0.0.1)\n"
-		"\t-p listen port (default: 1234)\n"
+		"\t-a Listen address (default: 127.0.0.1)\n"
+		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 34  / values 20 upto 59)\n"
+		"\t-r Gain reduction (default: 34  / values 20-59)\n"
 		"\t-L Low Noise Amplifier (default: 2 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
@@ -748,9 +722,9 @@ void usage(void)
 		"\t-W wide bandfilters enable* (default: disabled)\n"
 		"\t-w wide digital filters enable* (default: disabled)\n"
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
-		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)\n"
-		"\t-n max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bit conversion to 8bit (13/14/15/16 default:1 latest try)\n"
+		"\t-G Auto Gain Control Loop-bandwidth in Hz (default: 100 / values 0/5/50/100)\n"
+		"\t-n Max number of linked list buffers to keep (default: 512)\n"
+		"\t-b Bits used for conversion to 8bit (default:15 / values 14/15/16)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
@@ -864,6 +838,7 @@ int main(int argc, char **argv)
 		agctype = 0;}
 
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = 54;
+	if (sample_bits < 14 || sample_bits > 16) sample_bits = 15;
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
@@ -996,6 +971,7 @@ int main(int argc, char **argv)
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
 		printf("Low-Noise-Amp mode set %u (0=max 9=min)\n", rspLNA);
 		printf("Gain-Reduction set %u (59=max 20=min)\n", gainReduction);
+		printf("Bits used for conversion to 8 bit is %u bits\n", (sample_bits));
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
