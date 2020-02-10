@@ -134,7 +134,7 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static int sample_bits = 15; // 14 - 15 -16 bits used for conversion to 8 bit
+static int sample_bits = 14; // 14 - 15 -16 bits used for conversion to 8 bit
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 0;
