@@ -50,7 +50,7 @@ Usage:
 	
 	-n max number of linked list buffers to keep (default: 512)
 	
-	-b Bit conversion to 8bit (13/14/15/16 default: 1 latest try)
+	-b Bit conversion to 8bit (14/15/16 default: 15)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
@@ -114,6 +114,7 @@ Usage:
  - Version 0.8.0: New calculation for I/Q, default is the best, uses 15bit to 8bit, AM signals improved a lot.
  - Version 1.0.0: Minor tweaks. It should work out of the box in most cases.
  - Version 1.0.3: Found an even better way to do I/Q conversion, -b1 mode again less I/Q faults = less noise.
+ - Version 1.0.6: Measuring shown the box is about 14.5bit values. New calculation.
  
  
 ## CREDITS
