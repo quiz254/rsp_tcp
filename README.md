@@ -8,7 +8,7 @@
 
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
 
-As the rtl_tcp protocol is only 8 bits IQ it still uses the 16bit range, but you can reduce it:
+As the rtl_tcp protocol is only 8 bits IQ it still uses the 15bit range, but you can reduce it:
 
 1. It will work with any rtl_tcp capable frontend (probably), see usage below
 2. As it's opensource, you could compile it on any Linux server
@@ -50,7 +50,7 @@ Usage:
 	
 	-n max number of linked list buffers to keep (default: 512)
 	
-	-b Bit conversion to 8bit (14/15/16 default: 14)
+	-b Bit conversion to 8bit (15/16 default: 15)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
@@ -72,49 +72,20 @@ Usage:
   sudo make install
 ```
 ## NOTES
- - a RSP API version >=2.13 must be installed on the linux server, see [sdrplay linux downloads](https://www.sdrplay.com/downloads/)
+ - a RSP API version 2.13 (no other tested!) must be installed on the linux server, see [sdrplay linux downloads](https://www.sdrplay.com/downloads/)
  - It should compile and run on Raspbian (raspberry pi) (not tested)
  - It should compile on windows as the initial code from rtl_tcp does
  - The goal of this software is ONLY to work well with websdr.org, no other websdr servers or RTL-compatible software but it may work.
 
 ## TODO
- - Enhance the IF and RF gain management depending on bands, often edges of the bands are not flat like with 1536000 samplerate.
+ - Enhance the IF and RF gain management depending on bands, often edges of the bands are not flat like with 2048000 samplerate.
  - BiasT doesn't work no matter what I try, tested 2 RSP1A no BiasT
  
 ## HISTORY (later versions are forked by Bas ON5HB from original of F4FHH)
  - Version 0.1.0: Initial build
  - Version 0.1.4: Added extra options Bas.
- - Version 0.1.5: Added Decimate factor, has to be tested.
- - Version 0.1.7: Gain reducion changed from -g to -r, didn't work.
- - Version 0.2.4: Removed Decimate option - supported rates 64000/128000/256000/512000/1024000/1536000/2048000/2880000 (tested modes)
- - Version 0.2.5: Made a bandwidth mistake, fixed, was set too small
- - Version 0.2.7: Auto-decimate and a lot more buffers. 8/16bit mode, 16bit does not work with websdr.org
- - Version 0.2.8: More buffers else multiple multiple boxes will stutter.
- - Version 0.3.0: No more settings needed unless the defaults aren't good for you.
- - Version 0.3.2: Splitted Broadcast and DAB notches and they are anabled by default
- - Version 0.3.3: When -f is used at commandline the server will ignore frequency changes from client like progfreq!!!
- - Version 0.3.4: When -s is used at commandline the server will ignore samplerate settings from the client!!!
- - Version 0.3.5: Lowered gain reduction better default value and added line with remark if people use no upconverter.
- - Version 0.3.6: Set default settings for use without upconverter. Tested on HF.
- - Version 0.3.7: Set compiler to use -Ofast to run faster, seems to give lower CPU-load but I/Q output is the same.
- - Version 0.4.0: Made -o Optimal Decimate, works very well if you have just 1 receiver. You can regulate the max level in the source, it's set to 64, but if you want less, just set it 2 or 4, any even number between 2 to 64
- - Version 0.4.1: Supported SR: 64000/128000/256000/512000/1024000/1536000/2048000/2880000 and standard set to minimal decimate needed, if you want possible other rates, use -o switch also for optimal decimate. Also noticed that best results are gotten with NoElec 125MHz upconverter for low bands, without loads of noise and fake signals are present because of the wide filters we use for websdr.org.
- - Version 0.4.2: Possibility so select the IF-mode.
- - Version 0.4.3: Fixed gain-reduction-control, didn't work, now it does.
- - Version 0.4.4: Changed LNA-levels, mostly only -L needs to be set for optimal reception, thanks to PA0SIM. 
- AGC can be set, default 5Hz.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
- - Version 0.4.6: LNA level 0 is optimal in most cases.
- - Version 0.5.0: Alternative 8bit calculation is in the code, you can try that if there are many horizontal stripes.
- - Version 0.6.0: Probably last version, extensive testing done. Enjoy.
- - Version 0.6.1: -o and -W have changed. -o let you use a higher decimate if wanted. -W gives a smaller bandwidth filter.
- e.g. if 1.536MHz was default the smaller can be 600KHz. Without -W it's the normal width as before.
- - Version 0.6.2: Decimate is best not used, unless you must, it will eat CPU-cycles like candy.
- - Version 0.6.3: -w introduced again, lets you set digital/analogue filters, if ghost signals are there then digital is needed.
- - Version 0.8.0: New calculation for I/Q, default is the best, uses 15bit to 8bit, AM signals improved a lot.
- - Version 1.0.0: Minor tweaks. It should work out of the box in most cases.
- - Version 1.0.3: Found an even better way to do I/Q conversion, -b1 mode again less I/Q faults = less noise.
- - Version 1.0.6: Measuring shown the box is about 14.5bit values. New calculation.
+ - Version 1.1.5: Removed clicks on overloads.
  
  
 ## CREDITS
