@@ -933,7 +933,7 @@ int main(int argc, char **argv)
 	}
 
 	// enable DC offset and IQ imbalance correction
-	mir_sdr_DCoffsetIQimbalanceControl(0, 1);
+	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	// enable AGC with a setPoint of -30dBfs
 	mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
 
@@ -1037,7 +1037,7 @@ int main(int argc, char **argv)
 		fprintf(stderr,"started rx\n");
 
 		// set the DC offset correction mode for the tuner
-		mir_sdr_SetDcMode(0, 0);
+		mir_sdr_SetDcMode(4, 1);
 		// set the time period over which the DC offset is tracked when in one shot mode.
 		mir_sdr_SetDcTrackTime(10);
 		// set Bias-T
