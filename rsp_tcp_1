@@ -11,23 +11,22 @@
 ### END INIT INFO
 
 ###
-# Author: iMakhonin aka Makigo [11.11.2016]
-# Email: work.makhonin@gmail.com
+# Author: Bas Heijermans - ON5HB
+# Email: on5hb@heppen.be
 ###
 
 # Change the next 3 lines to suit where you install your script and what you want to call it
 DAEMON=rsp_tcp
 DAEMON_DIR=/usr/local/bin
-DAEMON_NAME=rsp_tcp_1
+DAEMON_NAME=rsp_tcp_1 #new name for every device if you use more then 1 
 
 DEVICE="-d1"         #number of drvice
 LISTIP="-a127.0.0.1"   #listen ip address (0.0.0.0 listen all interfaces)
 PORT="-p1234"        #listen port (default: 1234)
-PPM="-W -w -L0"           #ppm_errors (default: 0)
-# SMPR="-f 126024250"       # fixed freq instead of progfreq
+PARAM="-L0"           #parameters
 
 # Add any command line options for your daemon here
-DAEMON_OPTS="$DEVICE $LISTIP $PORT $PPM $SMPR"
+DAEMON_OPTS="$DEVICE $LISTIP $PORT $PARAM"
 
 # This next line determines what user the script runs as.
 DAEMON_USER=root
