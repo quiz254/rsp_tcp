@@ -11,8 +11,8 @@
 ### END INIT INFO
 
 ###
-# Author: Bas - ON5HB
-# Email: on5hb@heppen.be
+# Author: iMakhonin aka Makigo [11.11.2016]
+# Email: work.makhonin@gmail.com
 ###
 
 # Change the next 3 lines to suit where you install your script and what you want to call it
@@ -23,8 +23,8 @@ DAEMON_NAME=rsp_tcp_1
 DEVICE="-d1"         #number of drvice
 LISTIP="-a127.0.0.1"   #listen ip address (0.0.0.0 listen all interfaces)
 PORT="-p1234"        #listen port (default: 1234)
-#PPM="-r60 -A-28 -L -N"           #ppm_errors (default: 0)
-#SMPR="-s 1024"       #samplerate (default: 2048)
+PPM="-W -w -L0"           #ppm_errors (default: 0)
+# SMPR="-f 126024250"       # fixed freq instead of progfreq
 
 # Add any command line options for your daemon here
 DAEMON_OPTS="$DEVICE $LISTIP $PORT $PPM $SMPR"
