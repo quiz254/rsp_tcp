@@ -40,17 +40,15 @@ Usage:
 	
 	-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!
 	
-	-W widebandfilters enable* (default: enabled)
-	
-	-w wide digital filters disable* (default: disabled)
-	
+	-W widebandfilters disable* (default: enabled)
+			
 	-A Auto Gain Control (default: -34 / values 0 to -60)
 	
 	-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)
 	
 	-n max number of linked list buffers to keep (default: 512)
 	
-	-b Bit conversion to 8bit (15/16 default: 15)
+	-b Bit conversion to 8bit (default: 15.5 / values 12/12.5/13/13.5/14/14.5/15.5/16)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
@@ -86,6 +84,7 @@ Usage:
  - Version 0.1.4: Added extra options Bas.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
  - Version 1.1.5: Removed clicks on overloads.
+ - Version 1.1.6: -w removed and combined with -W to avoid ghost-signals appear. Many new bit conversions and default to 15.5bit.
  
  
 ## CREDITS
