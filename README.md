@@ -40,7 +40,7 @@ Usage:
 	
 	-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!
 	
-	-W widebandfilters disable* (default: enabled)
+	-W wideband disable* (default: enabled)
 			
 	-A Auto Gain Control (default: -34 / values 0 to -60)
 	
