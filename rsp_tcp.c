@@ -135,7 +135,7 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static float sample_bits = 15.5; // 12 - 12.5 ----- 15.5 -16 'bits' used for conversion to 8 bit
+static float sample_bits = 14.5; // 12 - 12.5 ----- 15.5 -16 'bits' used for conversion to 8 bit
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 1;
@@ -856,7 +856,7 @@ void usage(void)
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bits used for conversion to 8bit (default:15.5 / values 12/12.5/13/13.5/14/14.5/15.5/16)\n"
+		"\t-b Bits used for conversion to 8bit (default:14.5 / values 12/12.5/13/13.5/14/14.5/15.5/16)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
