@@ -74,14 +74,6 @@ typedef struct { /* structure size must be multiple of 2 bytes */
 	uint32_t tuner_gain_count;
 } dongle_info_t;
 
-typedef enum {
-        RSP_MODEL_UNKNOWN = 0,
-        RSP_MODEL_RSP1 = 1,
-        RSP_MODEL_RSP1A = 2,
-        RSP_MODEL_RSP2 = 3,
-        RSP_MODEL_RSPDUO = 4
-} rsp_model_t;
-
 double atofs(char *s)
 /* standard suffixes */
 {
@@ -128,7 +120,7 @@ static volatile int do_exit = 0;
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
-static int devModel = 1;
+static int devModel = 0;
 static int bwType = DEFAULT_BW_T;
 static int agcSetPoint = DEFAULT_AGC_SETPOINT;
 static int gainReduction = DEFAULT_GAIN_REDUCTION;
@@ -1011,9 +1003,14 @@ int main(int argc, char **argv)
                 exit(1);
         }
 
-	// get RSP model
+	// get RSP model and display modelname.
 	devModel = devices[device].hwVer;
-	printf("detected RSP model (hw version %d)\n", r);
+	if (devModel == 1) printf("detected RSP model (hw version %d) = RSP1\n", devModel);
+	else if (devModel == 2) printf("detected RSP model (hw version %d) = RSP2\n", devModel);
+	else if (devModel == 3) printf("detected RSP model (hw version %d) = RSPduo\n", devModel);
+	else if (devModel == 255) printf("detected RSP model (hw version %d) = RSP1A\n", devModel);
+	else printf("detected RSP model (hw version %d) = Unknown\n", devModel);
+
 	// select antenna
 	switch (antenna) {
 		case 1:
