@@ -1008,6 +1008,7 @@ int main(int argc, char **argv)
 	if (devModel == 1) printf("detected RSP model (hw version %d) = RSP1\n", devModel);
 	else if (devModel == 2) printf("detected RSP model (hw version %d) = RSP2\n", devModel);
 	else if (devModel == 3) printf("detected RSP model (hw version %d) = RSPduo\n", devModel);
+	else if (devModel == 4) printf("detected RSP model (hw version %d) = RSPdx\n", devModel);
 	else if (devModel == 255) printf("detected RSP model (hw version %d) = RSP1A\n", devModel);
 	else printf("detected RSP model (hw version %d) = Unknown\n", devModel);
 
