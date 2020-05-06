@@ -277,7 +277,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         rpt->len = 2 * numSamples;
                 }
 
-                if (sample_bits == 13.5) {
+                else if (sample_bits == 13.5) {
                         rpt->data = malloc(2 * numSamples * sizeof(short));
 
                         // assemble the data
