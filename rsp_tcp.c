@@ -127,10 +127,10 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static float sample_bits = 14.5; // 12 - 12.5 ----- 15.5 -16 'bits' used for conversion to 8 bit
+static float sample_bits = 14; // 12 - 12.5 ----- 15.5 -16 'bits' used for conversion to 8 bit
 static int last_gain_idx = 0;
 static int verbose = 0;
-static int wideband = 1;
+static int wideband = 0;
 
 ////waardes
 static int devAvail = 0;
@@ -209,7 +209,6 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-	unsigned short iout, qout;
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
 //printf("xi=%hd,xq=%hd\n",*xi,*xq);}
@@ -217,180 +216,40 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-
-
-// check sample_bit
-		if (sample_bits == 12) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
+		rpt->data = malloc(2 * numSamples * sizeof(short));
+			// assemble the data
                         unsigned char *data;
                         data = (unsigned char*)rpt->data;
 
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -2048 && *xi < 2047) iout = ((*xi +2048) /16 ) +0.5;
-                                else iout = 0;
-                                if (*xq > -2048 && *xq < 2047) qout = ((*xq +2048) /16) +0.5;
-                                else qout = 0;
+			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
-                        rpt->len = 2 * numSamples;
-                }
+				if (sample_bits == 12) {
+					*(data++) = (unsigned char)((((*xi << 4) >> 7) +256.5) /2 );
+                                	*(data++) = (unsigned char)((((*xq << 4) >> 7) +256.5) /2 );
+	                        }
 
-                else if (sample_bits == 12.5) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
+				else if (sample_bits == 13) {
+					*(data++) = (unsigned char)((((*xi << 3) >> 7) +256.5) /2 );
+                                	*(data++) = (unsigned char)((((*xq << 3) >> 7) +256.5) /2 );
+				}
+				else if (sample_bits == 14) {
+                                        *(data++) = (unsigned char)((((*xi << 2) >> 7) +256.5) /2 );
+                                        *(data++) = (unsigned char)((((*xq << 2) >> 7) +256.5) /2 );
+				}
+				else if (sample_bits == 15) {
+                                        *(data++) = (unsigned char)((((*xi << 1) >> 7) +256.5) /2 );
+                                        *(data++) = (unsigned char)((((*xq << 1) >> 7) +256.5) /2 );
+				}
 
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -3072 && *xi < 3071) iout = ((*xi +3072) /24) +0.5;
-                                else iout = 0;
-                                if (*xq > -3072 && *xq < 3071) qout = ((*xq +3072) /24) +0.5;
-                                else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else if (sample_bits == 13) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -4096 && *xi < 4095) iout = ((*xi +4096) /32) +0.5;
-                                else iout = 0;
-                                if (*xq > -4096 && *xq < 4095) qout = ((*xq +4096) /32) +0.5;
-                                else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else if (sample_bits == 13.5) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -6144 && *xi < 6143) iout = ((*xi +6144) /48) +0.5;
-                                else iout = 0;
-                                if (*xq > -6144 && *xq < 6143) qout = ((*xq +6144) /48) +0.5;
-                                else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else if (sample_bits == 14) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-				if (*xi > -8192 && *xi < 8191) iout = ((*xi +8192) /64) +0.5;
-				else iout = 0;
-				if (*xq > -8192 && *xq < 8191) qout = ((*xq +8192) /64) +0.5;
-				else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-			}
-                        rpt->len = 2 * numSamples;
-                }
-
-                else if (sample_bits == 14.5) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -12288 && *xi < 12287) iout = ((*xi +12288) /96) +0.5;
-                                else iout = 0;
-                                if (*xq > -12288 && *xq < 12287) qout = ((*xq +12288) /96) +0.5;
-                                else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-
-//if (*xi > 16200 || *xi < -16200 || *xq > 16200 || *xq < -16200) {
-//printf("xi=%d - %d,xq=%d - %d\n",(short)(*xi),(iout),(short)(*xq),(qout));}
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else if (sample_bits == 15) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -16384 && *xi < 16383) iout = ((*xi +16384) /128) +0.5;
-                                else iout = 0;
-                                if (*xq > -16384 && *xq < 16383) qout = ((*xq +16384) /128) +0.5;
-                                else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-                else if (sample_bits == 15.5) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-				if (*xi > -24576 && *xi < 24575) iout = ((*xi +24576) /192) +0.5;
-				else iout = 0;
-                                if (*xq > -24576 && *xq < 24575) qout = ((*xq +24576) /192) +0.5;
-                                else qout = 0;
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
-                        rpt->len = 2 * numSamples;
-                }
-
-
-                else if (sample_bits == 16) {
-                        rpt->data = malloc(2 * numSamples * sizeof(short));
-
-                        // assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
-
-                        for (i = 0; i < numSamples; i++, xi++, xq++) {
-                                if (*xi > -32768 && *xi < 32767) iout = ((*xi +0) /256) +0.5;
-                                else iout = 0;
-                                if (*xq > -32768 && *xq < 32768) qout = ((*xq +0) /256) +0.5;
-                                else qout = 0;
-
-                                *(data++) = (unsigned short)(iout);
-                                *(data++) = (unsigned short)(qout);
-                        }
+		                else if (sample_bits == 16) {
+					*(data++) = (unsigned char)(((*xi >> 7) +256.5) /2 );
+        	                        *(data++) = (unsigned char)(((*xq >> 7) +256.5) /2 );
+				}
+//bas
+				else if (sample_bits == 99) {
+					*(data++) = (unsigned char)((((*xi << 2) >> 7) +256.5) /2 );
+					*(data++) = (unsigned char)((((*xq << 2) >> 7) +256.5) /2 );
+                	        }
                         rpt->len = 2 * numSamples;
                 }
 
@@ -844,11 +703,11 @@ void usage(void)
 		"\t-R Refclk output enable* (default: disabled)\n"
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
-		"\t-W wideband disable* (default: enabled)\n"
+		"\t-W wideband enable* (default: disabled)\n"
 		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bits used for conversion to 8bit (default:14.5 / values 12/12.5/13/13.5/14/14.5/15.5/16)\n"
+		"\t-b Bits used for conversion to 8bit (default:14 / values 12/13/14/15/16)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
@@ -920,7 +779,7 @@ int main(int argc, char **argv)
 			llbuf_num = atoi(optarg);
 			break;
                 case 'W':
-                        wideband = 0;
+                        wideband = 1;
                         break;
 		case 'L':
 			rspLNA = atoi(optarg); // Change by PA0SIM
@@ -1008,7 +867,6 @@ int main(int argc, char **argv)
 	if (devModel == 1) printf("detected RSP model (hw version %d) = RSP1\n", devModel);
 	else if (devModel == 2) printf("detected RSP model (hw version %d) = RSP2\n", devModel);
 	else if (devModel == 3) printf("detected RSP model (hw version %d) = RSPduo\n", devModel);
-	else if (devModel == 4) printf("detected RSP model (hw version %d) = RSPdx\n", devModel);
 	else if (devModel == 255) printf("detected RSP model (hw version %d) = RSP1A\n", devModel);
 	else printf("detected RSP model (hw version %d) = Unknown\n", devModel);
 
