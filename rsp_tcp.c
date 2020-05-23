@@ -224,31 +224,31 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
 				if (sample_bits == 12) {
-					*(data++) = (unsigned char)((((*xi << 4) >> 7) +257) /2 );
-                                	*(data++) = (unsigned char)((((*xq << 4) >> 7) +257) /2 );
+					*(data++) = (unsigned char)((((*xi << 4) >> 7) +256.5) /2 );
+                                	*(data++) = (unsigned char)((((*xq << 4) >> 7) +256.5) /2 );
 	                        }
 
 				else if (sample_bits == 13) {
-					*(data++) = (unsigned char)((((*xi << 3) >> 7) +257) /2 );
-                                	*(data++) = (unsigned char)((((*xq << 3) >> 7) +257) /2 );
+					*(data++) = (unsigned char)((((*xi << 3) >> 7) +256.5) /2 );
+                                	*(data++) = (unsigned char)((((*xq << 3) >> 7) +256.5) /2 );
 				}
 				else if (sample_bits == 14) {
-                                        *(data++) = (unsigned char)((((*xi << 2) >> 7) +257) /2 );
-                                        *(data++) = (unsigned char)((((*xq << 2) >> 7) +257) /2 );
+                                        *(data++) = (unsigned char)((((*xi << 2) >> 7) +256.5) /2 );
+                                        *(data++) = (unsigned char)((((*xq << 2) >> 7) +256.5) /2 );
 				}
 				else if (sample_bits == 15) {
-                                        *(data++) = (unsigned char)((((*xi << 1) >> 7) +257) /2 );
-                                        *(data++) = (unsigned char)((((*xq << 1) >> 7) +257) /2 );
+                                        *(data++) = (unsigned char)((((*xi << 1) >> 7) +256.5) /2 );
+                                        *(data++) = (unsigned char)((((*xq << 1) >> 7) +256.5) /2 );
 				}
 
 		                else if (sample_bits == 16) {
-					*(data++) = (unsigned char)(((*xi >> 7) +257) /2 );
-        	                        *(data++) = (unsigned char)(((*xq >> 7) +257) /2 );
+					*(data++) = (unsigned char)(((*xi >> 7) +256.5) /2 );
+        	                        *(data++) = (unsigned char)(((*xq >> 7) +256.5) /2 );
 				}
 //bas
 				else if (sample_bits == 99) {
-					*(data++) = (unsigned char)((((*xi << 2) >> 7) + 256 + (rand() % 3)) / 2);
-					*(data++) = (unsigned char)((((*xq << 2) >> 7) + 256 + (rand() % 3)) / 2);
+					*(data++) = (unsigned char)((((*xi << 2) >> 7) + 255 + (rand() % 3)) / 2);
+					*(data++) = (unsigned char)((((*xq << 2) >> 7) + 255 + (rand() % 3)) / 2);
                 	        }
                         rpt->len = 2 * numSamples;
                 }
