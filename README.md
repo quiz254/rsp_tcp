@@ -49,7 +49,7 @@ Usage:
 	
 	-n max number of linked list buffers to keep (default: 512)
 	
-	-b Bit conversion to 8bit (default: 14 / values 12/13/14/15/16)
+	-b Bit conversion to 8bit (default: 14 / values 12/13/14/15/16 - 99 exprimental dithering)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
@@ -88,6 +88,7 @@ Usage:
  - Version 1.1.6: -w removed and combined with -W to avoid ghost-signals appear. Many new bit conversions and default to 15.5bit.
  - Version 1.1.7: 14.5bit as default and fixed box reporting, now correct and box-name, only tested on RSP1A.
  - Version 1.1.8: Reworked the conversion to 8 bit again, spikes don't matter. Wideband disabled by default, no use for 2048MSPS.
+ - Version 1.1.9: Added -b99 mode, does 14bit with experimental dithering.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
