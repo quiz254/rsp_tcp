@@ -209,10 +209,6 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-// I/Q value reader - if enabled show values
-//if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
-//printf("xi=%hd,xq=%hd\n",*xi,*xq);}
-
 
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
@@ -224,31 +220,35 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
 				if (sample_bits == 12) {
-					*(data++) = (unsigned char)((((*xi << 4) >> 7) +256.5) /2 );
-                                	*(data++) = (unsigned char)((((*xq << 4) >> 7) +256.5) /2 );
+					*(data++) = (unsigned char)((((*xi << 4) >> 7) +256.75) /2 );
+                                	*(data++) = (unsigned char)((((*xq << 4) >> 7) +256.75) /2 );
 	                        }
 
 				else if (sample_bits == 13) {
-					*(data++) = (unsigned char)((((*xi << 3) >> 7) +256.5) /2 );
-                                	*(data++) = (unsigned char)((((*xq << 3) >> 7) +256.5) /2 );
+					*(data++) = (unsigned char)((((*xi << 3) >> 7) +256.75) /2 );
+                                	*(data++) = (unsigned char)((((*xq << 3) >> 7) +256.75) /2 );
 				}
 				else if (sample_bits == 14) {
-                                        *(data++) = (unsigned char)((((*xi << 2) >> 7) +256.5) /2 );
-                                        *(data++) = (unsigned char)((((*xq << 2) >> 7) +256.5) /2 );
+                                        *(data++) = (unsigned char)((((*xi << 2) >> 7) +256.75) /2 );
+                                        *(data++) = (unsigned char)((((*xq << 2) >> 7) +256.75) /2 );
 				}
 				else if (sample_bits == 15) {
-                                        *(data++) = (unsigned char)((((*xi << 1) >> 7) +256.5) /2 );
-                                        *(data++) = (unsigned char)((((*xq << 1) >> 7) +256.5) /2 );
+                                        *(data++) = (unsigned char)((((*xi << 1) >> 7) +256.75) /2 );
+                                        *(data++) = (unsigned char)((((*xq << 1) >> 7) +256.75) /2 );
 				}
 
 		                else if (sample_bits == 16) {
-					*(data++) = (unsigned char)(((*xi >> 7) +256.5) /2 );
-        	                        *(data++) = (unsigned char)(((*xq >> 7) +256.5) /2 );
+					*(data++) = (unsigned char)(((*xi >> 7) +256.75) /2 );
+        	                        *(data++) = (unsigned char)(((*xq >> 7) +256.75) /2 );
 				}
 //bas
 				else if (sample_bits == 99) {
-					*(data++) = (unsigned char)((((*xi << 2) >> 7) + 255 + (rand() % 3)) / 2);
-					*(data++) = (unsigned char)((((*xq << 2) >> 7) + 255 + (rand() % 3)) / 2);
+					*(data++) = (unsigned char)((((*xi << 2) >> 7) + 256.75 + (rand() % 2)) / 2);
+					*(data++) = (unsigned char)((((*xq << 2) >> 7) + 256.75 + (rand() % 2)) / 2);
+// I/Q value reader - if enabled show values
+//if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
+//printf("xi=%hd,xq=%hd\n",*xi,*xq);}
+
                 	        }
                         rpt->len = 2 * numSamples;
                 }
