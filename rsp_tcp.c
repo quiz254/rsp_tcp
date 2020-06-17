@@ -114,9 +114,9 @@ static volatile int do_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -34 // original -34
-#define DEFAULT_GAIN_REDUCTION 34 // original 34
-#define DEFAULT_LNA 2
+#define DEFAULT_AGC_SETPOINT -24 // original -24
+#define DEFAULT_GAIN_REDUCTION 40 // original 40
+#define DEFAULT_LNA 1
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -247,7 +247,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 					*(data++) = (unsigned char)((((*xq << 2) >> 7) + 256.75 + (rand() % 2)) / 2);
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
-//printf("xi=%hd,xq=%hd\n",*xi,*xq);}
+//printf("xi=%hd,xq=%hd\n",(*xi >> 7),(*xq >> 7));}
 
                 	        }
                         rpt->len = 2 * numSamples;
@@ -347,7 +347,8 @@ static void *tcp_worker(void *arg)
 
 // gain reduction list in back order to emulate R820T gain
 //--bas--
-const int gain_list[] = { 78, 75, 72, 69, 66, 63, 60, 57, 54, 51, 48, 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0 };
+// const int gain_list[] = { 78, 75, 72, 69, 66, 63, 60, 57, 54, 51, 48, 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0 };
+const int gain_list[] = { 40 };
 
 static int set_gain_by_index(unsigned int index)
 {
@@ -695,8 +696,8 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 34  / values 20-59)\n"
-		"\t-L Low Noise Amplifier (default: 2 / values 0-9)\n"
+		"\t-r Gain reduction (default: 40  / values 20-59)\n"
+		"\t-l Low Noise Amplifier (default: 2 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
@@ -704,7 +705,7 @@ void usage(void)
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W wideband enable* (default: disabled)\n"
-		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
+		"\t-A Auto Gain Control Setpoint (default: -24 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-b Bits used for conversion to 8bit (default:16 / values 12/13/14/15/16)\n"
@@ -744,7 +745,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:L:o:G:WwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:l:o:G:WwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -781,7 +782,7 @@ int main(int argc, char **argv)
                 case 'W':
                         wideband = 1;
                         break;
-		case 'L':
+		case 'l':
 			rspLNA = atoi(optarg); // Change by PA0SIM
 			break;
                 case 'G':
