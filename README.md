@@ -25,9 +25,9 @@ Usage:
 	
 	-P Antenna Port select* (0/1/2, default: 0, Port A)
 	
-	-r Gain reduction (default: 34 / values 0 upto 59)
+	-r Gain reduction (default: 40 / values 0 upto 59)
 	
-	-L Low Noise Amplifier (default: 2 / values 0-9)
+	-l Low Noise Amplifier (default: 2 / values 0-9)
 	
 	-T Bias-T enable* (default: disabled)
 	
@@ -43,7 +43,7 @@ Usage:
 	
 	-W wideband enable* (default: disabled)
 			
-	-A Auto Gain Control (default: -34 / values 0 to -60)
+	-A Auto Gain Control (default: -24 / values 0 to -60)
 	
 	-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)
 	
@@ -90,6 +90,7 @@ Usage:
  - Version 1.1.8: Reworked the conversion to 8 bit again, spikes don't matter. Wideband disabled by default, no use for 2048MSPS.
  - Version 1.1.9: Added -b99 mode, does 14bit with experimental dithering.
  - Version 1.2.0: Changed rounding for dithering.
+ - Version 1.2.1: Better default rf-gain and AGC as well as internal gain fixed.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
