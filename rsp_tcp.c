@@ -116,7 +116,7 @@ static volatile int do_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -24 // original -24
 #define DEFAULT_GAIN_REDUCTION 40 // original 40
-#define DEFAULT_LNA 1
+#define DEFAULT_LNA 1 // 0 = off and 1 = automatic
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -355,9 +355,8 @@ static int set_gain_by_index(unsigned int index)
 	int r;
 
 //	gainReduction = gain_list[index];
-//r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
-// Changed by PA0SIM ===========================================
-	r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, mir_sdr_CHANGE_GR);
+        r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
+// nomal mode r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, mir_sdr_CHANGE_GR);
 	if (r != mir_sdr_Success) {
 		printf("set gain reduction error (%d)\n", r);
 	}
@@ -697,7 +696,7 @@ void usage(void)
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 40  / values 20-59)\n"
-		"\t-l Low Noise Amplifier (default: 2 / values 0-9)\n"
+		"\t-l Low Noise Amplifier level (default: 1-auto / values 0-off)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
@@ -745,7 +744,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:l:o:G:WwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:o:G:lWwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -783,7 +782,7 @@ int main(int argc, char **argv)
                         wideband = 1;
                         break;
 		case 'l':
-			rspLNA = atoi(optarg); // Change by PA0SIM
+			rspLNA = 0;
 			break;
                 case 'G':
                         agctype = atoi(optarg);
@@ -889,6 +888,25 @@ int main(int argc, char **argv)
 	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	// enable AGC with a setPoint of -30dBfs
 	mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
+        // set the DC offset correction mode for the tuner (moved from below)
+        mir_sdr_SetDcMode(4, 1);
+        // set the time period over which the DC offset is tracked when in one shot mode.
+        mir_sdr_SetDcTrackTime(10);
+        // set Bias-T
+        mir_sdr_RSPII_BiasTControl(enable_biastee);
+        mir_sdr_rsp1a_BiasT(enable_biastee);
+        mir_sdr_rspDuo_BiasT(enable_biastee);
+        // set Notch
+        mir_sdr_RSPII_RfNotchEnable(enable_broadcastnotch);
+        mir_sdr_rsp1a_DabNotch(enable_dabnotch);
+        mir_sdr_rsp1a_BroadcastNotch(enable_broadcastnotch);
+        mir_sdr_rspDuo_DabNotch(enable_dabnotch);
+        mir_sdr_rspDuo_BroadcastNotch(enable_broadcastnotch);
+        mir_sdr_rspDuo_Tuner1AmNotch(enable_broadcastnotch);
+        // set external reference output
+        mir_sdr_RSPII_ExternalReferenceControl(enable_refout);
+        mir_sdr_rspDuo_ExtRef(enable_refout);
+
 
 #ifndef _WIN32
 	sigact.sa_handler = sighandler;
@@ -955,7 +973,7 @@ int main(int argc, char **argv)
 
 		printf("client accepted!\n");
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
-		printf("Low-Noise-Amp mode set %u (0=max 9=min)\n", rspLNA);
+		printf("Low-Noise-Amp mode set %u (0=off 1=on)\n", rspLNA);
 		printf("Gain-Reduction set %d (59=max 20=min)\n", gainReduction);
 		printf("Bits used for conversion to 8 bit is %g bits\n", (sample_bits));
 
@@ -978,10 +996,10 @@ int main(int argc, char **argv)
 		r = pthread_create(&command_thread, &attr, command_worker, NULL);
 		pthread_attr_destroy(&attr);
 */
-		// initialise API and start the rx
-//r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+// initialise API and start the rx
+		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 // Changes by PA0SIM =============================
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+//		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);
@@ -989,24 +1007,8 @@ int main(int argc, char **argv)
 		}
 		fprintf(stderr,"started rx\n");
 
-		// set the DC offset correction mode for the tuner
-		mir_sdr_SetDcMode(4, 1);
-		// set the time period over which the DC offset is tracked when in one shot mode.
-		mir_sdr_SetDcTrackTime(10);
-		// set Bias-T
-		mir_sdr_RSPII_BiasTControl(enable_biastee);
-		mir_sdr_rsp1a_BiasT(enable_biastee);
-		mir_sdr_rspDuo_BiasT(enable_biastee);
-		// set Notch
-		mir_sdr_RSPII_RfNotchEnable(enable_broadcastnotch);
-		mir_sdr_rsp1a_DabNotch(enable_dabnotch);
-		mir_sdr_rsp1a_BroadcastNotch(enable_broadcastnotch);
-		mir_sdr_rspDuo_DabNotch(enable_dabnotch);
-		mir_sdr_rspDuo_BroadcastNotch(enable_broadcastnotch);
-		mir_sdr_rspDuo_Tuner1AmNotch(enable_broadcastnotch);
-		// set external reference output
-		mir_sdr_RSPII_ExternalReferenceControl(enable_refout);
-		mir_sdr_rspDuo_ExtRef(enable_refout);
+//Notches and other stuff removed from here....
+//Moved up.
 
 		// the rx must be started before accepting commands from the command worker
 		r = pthread_create(&command_thread, &attr, command_worker, NULL);
