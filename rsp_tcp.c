@@ -696,7 +696,7 @@ void usage(void)
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 40  / values 20-59)\n"
-		"\t-l Low Noise Amplifier level (default: 1-auto / values 0-off)\n"
+		"\t-l Low Noise Amplifier disable* (default: enabled)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
