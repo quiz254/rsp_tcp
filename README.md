@@ -27,7 +27,7 @@ Usage:
 	
 	-r Gain reduction (default: 40 / values 0 upto 59)
 	
-	-l Low Noise Amplifier (default: 2 / values 0-9)
+	-l Low Noise Amplifier disable* (default: enabled)
 	
 	-T Bias-T enable* (default: disabled)
 	
@@ -91,6 +91,7 @@ Usage:
  - Version 1.1.9: Added -b99 mode, does 14bit with experimental dithering.
  - Version 1.2.0: Changed rounding for dithering.
  - Version 1.2.1: Better default rf-gain and AGC as well as internal gain fixed.
+ - Version 1.2.2: Removed manual LNA setting, can only be set on of off, also some more bugs fixed.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
