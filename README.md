@@ -5,7 +5,7 @@
 (c)2020 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## An rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR but does NOT support the RSPdx
-## The best SDRplay to buy and use for websdr.org is the RSP1A, it has the best filters and notches!!!!!!!
+## This driver has been tested and works perfect with the RSP1A and RSP2
 
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
 
