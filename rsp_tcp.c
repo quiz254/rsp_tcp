@@ -147,6 +147,10 @@ static int deci = 1;
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 static int agctype = 5; // just the number of above
 
+/////shiftfactor and downscale, used in bitmode 98 and 99 for testing
+static int shiftfactor = 6; //typical anything between 4-8 - node 99
+static int downscale = 8192; //typical 8192 or 2048 - mode 98
+
 #ifdef _WIN32
 int gettimeofday(struct timeval *tv, void* ignored)
 {
@@ -187,6 +191,7 @@ static void sighandler(int signum)
 	// change here
 	// rtlsdr_cancel_async(dev);
 	do_exit = 1;
+	exit(1);
 }
 #endif
 
@@ -242,9 +247,14 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
         	                        *(data++) = (unsigned char)(((*xq >> 7) +256.75) /2 );
 				}
 //bas
+				else if (sample_bits == 98) {
+					*(data++) = (uint8_t)((float)(*xi) * 128.0 / downscale) + 128;
+					*(data++) = (uint8_t)((float)(*xq) * 128.0 / downscale) + 128;
+				}
 				else if (sample_bits == 99) {
-					*(data++) = (unsigned char)((((*xi << 2) >> 7) + 256.75 + (rand() % 2)) / 2);
-					*(data++) = (unsigned char)((((*xq << 2) >> 7) + 256.75 + (rand() % 2)) / 2);
+                                        *(data++) = (uint8_t)((*xi >> shiftfactor) & 0xFF) + 128;
+                                        *(data++) = (uint8_t)((*xq >> shiftfactor) & 0xFF) + 128; 
+
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
 //printf("xi=%hd,xq=%hd\n",(*xi >> 7),(*xq >> 7));}
@@ -696,7 +706,7 @@ void usage(void)
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 40  / values 20-59)\n"
-		"\t-l Low Noise Amplifier disable* (default: enabled)\n"
+		"\t-l Low Noise Amplifier level (default: 1-auto / values 0-off)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
