@@ -92,6 +92,7 @@ Usage:
  - Version 1.2.0: Changed rounding for dithering.
  - Version 1.2.1: Better default rf-gain and AGC as well as internal gain fixed.
  - Version 1.2.2: Removed manual LNA setting, can only be set on of off, also some more bugs fixed.
+ - Version 1.2.3: CTRL-C fixed, it exits on the first press, bugged me for a while :-)
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
