@@ -49,7 +49,7 @@ Usage:
 	
 	-n max number of linked list buffers to keep (default: 512)
 	
-	-b Bit conversion to 8bit (default: 16 / values 12/13/14/15/16 - 99 exprimental dithering)
+	-b Bit conversion to 8bit (default: 16 / values 12/13/14/15/16 - 98/99 exprimental)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
