@@ -110,12 +110,13 @@ static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
 static volatile int do_exit = 0;
+static volatile int ctrlC_exit = 0;
 
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -24 // original -24
-#define DEFAULT_GAIN_REDUCTION 40 // original 40
+#define DEFAULT_AGC_SETPOINT -34 // original -24 //Bas -34
+#define DEFAULT_GAIN_REDUCTION 34 // original 40 //Bas 34
 #define DEFAULT_LNA 1 // 0 = off and 1 = automatic
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
@@ -127,7 +128,6 @@ static int gainReduction = DEFAULT_GAIN_REDUCTION;
 static int rspLNA = DEFAULT_LNA;
 static int infoOverallGr;
 static int samples_per_packet;
-static float sample_bits = 16; // 12 - 12.5 ----- 15.5 -16 'bits' used for conversion to 8 bit
 static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 0;
@@ -141,15 +141,12 @@ static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int opt_deci = 0;
-static int deci = 1;
+static int deci = 1; // deci=1 means disabled, enabled is 2/4/8/16/etc
 
 ////AGC beware to change all!
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 static int agctype = 5; // just the number of above
 
-/////shiftfactor and downscale, used in bitmode 98 and 99 for testing
-static int shiftfactor = 6; //typical anything between 4-8 - node 99
-static int downscale = 8192; //typical 8192 or 2048 - mode 98
 
 #ifdef _WIN32
 int gettimeofday(struct timeval *tv, void* ignored)
@@ -177,9 +174,14 @@ BOOL WINAPI
 sighandler(int signum)
 {
 	if (CTRL_C_EVENT == signum) {
-		fprintf(stderr, "Signal caught, exiting!\n");
+		fprintf(stderr, "CTRL-C caught, exiting!\n");
 		do_exit = 1;
-		rtlsdr_cancel_async(dev);
+		ctrlC_exit = 1;
+		return TRUE;
+	}
+	else if (CTRL_CLOSE_EVENT == signum) {
+		fprintf(stderr, "SIGQUIT caught, exiting!\n");
+		do_exit = 1;
 		return TRUE;
 	}
 	return FALSE;
@@ -188,10 +190,7 @@ sighandler(int signum)
 static void sighandler(int signum)
 {
 	fprintf(stderr, "Signal (%d) caught, ask for exit!\n", signum);
-	// change here
-	// rtlsdr_cancel_async(dev);
 	do_exit = 1;
-	exit(1);
 }
 #endif
 
@@ -214,7 +213,8 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-
+	short xi2=0;
+	short xq2=0;
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		rpt->data = malloc(2 * numSamples * sizeof(short));
@@ -223,43 +223,23 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
+				if (*xi < -8192)
+                        		{xi2 = -8192;}
+			        else if (*xi > 8191)
+                        		{xi2 = 8191;}
+			        else {xi2 = *xi;}
+				if (*xq < -8192)
+                                        {xq2 = -8192;}
+                                else if (*xq > 8191)
+                                        {xq2 = 8191;}
+                                else {xq2 = *xq;}
 
-				if (sample_bits == 12) {
-					*(data++) = (unsigned char)((((*xi << 4) >> 7) +256.75) /2 );
-                                	*(data++) = (unsigned char)((((*xq << 4) >> 7) +256.75) /2 );
-	                        }
-
-				else if (sample_bits == 13) {
-					*(data++) = (unsigned char)((((*xi << 3) >> 7) +256.75) /2 );
-                                	*(data++) = (unsigned char)((((*xq << 3) >> 7) +256.75) /2 );
-				}
-				else if (sample_bits == 14) {
-                                        *(data++) = (unsigned char)((((*xi << 2) >> 7) +256.75) /2 );
-                                        *(data++) = (unsigned char)((((*xq << 2) >> 7) +256.75) /2 );
-				}
-				else if (sample_bits == 15) {
-                                        *(data++) = (unsigned char)((((*xi << 1) >> 7) +256.75) /2 );
-                                        *(data++) = (unsigned char)((((*xq << 1) >> 7) +256.75) /2 );
-				}
-
-		                else if (sample_bits == 16) {
-					*(data++) = (unsigned char)(((*xi >> 7) +256.75) /2 );
-        	                        *(data++) = (unsigned char)(((*xq >> 7) +256.75) /2 );
-				}
-//bas
-				else if (sample_bits == 98) {
-					*(data++) = (uint8_t)((float)(*xi) * 128.0 / downscale) + 128;
-					*(data++) = (uint8_t)((float)(*xq) * 128.0 / downscale) + 128;
-				}
-				else if (sample_bits == 99) {
-                                        *(data++) = (uint8_t)((*xi >> shiftfactor) & 0xFF) + 128;
-                                        *(data++) = (uint8_t)((*xq >> shiftfactor) & 0xFF) + 128; 
-
+                                        *(data++) = (((xi2 >> 6 ) &0xFF) +128.4);
+                                        *(data++) = (((xq2 >> 6 ) &0xFF) +128.4);
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
 //printf("xi=%hd,xq=%hd\n",(*xi >> 7),(*xq >> 7));}
 
-                	        }
                         rpt->len = 2 * numSamples;
                 }
 
@@ -496,15 +476,20 @@ static int set_sample_rate(uint32_t sr)
         }
         else
         {
-                if (sr == 2048000 || sr == 2880000)
+                if (sr == 2048000 || sr == 2880000 || sr == 5760000)
                 {
                         deci = 1;
                         if (opt_deci > 1) deci = opt_deci;
                         if (wideband == 1) bwType = mir_sdr_BW_5_000;
                         else bwType = mir_sdr_BW_1_536;
                 }
-
-                else if (sr == 1024000 || sr == 1536000)
+		else if (sr == 1536000)
+                {
+                        deci = 2;
+                        if (opt_deci > 2) deci = opt_deci;
+                        bwType = mir_sdr_BW_1_536;
+                }
+                else if (sr == 1024000)
                 {
                         deci = 2;
 			if (opt_deci > 2) deci = opt_deci;
@@ -559,12 +544,10 @@ static int set_sample_rate(uint32_t sr)
 
 	f = (double)(sr * deci);
 
-	if (deci == 0 )
-                mir_sdr_DecimateControl(0, 0, wideband);
-	else if (deci == 1 )
-		mir_sdr_DecimateControl(1, 0, wideband);
+	if (deci <= 1 )
+		mir_sdr_DecimateControl(0, 0, 0);
 	else if (deci > 1 )
-                mir_sdr_DecimateControl(1, deci, wideband);
+                mir_sdr_DecimateControl(1, deci, 0);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
@@ -705,7 +688,7 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 40  / values 20-59)\n"
+		"\t-r Gain reduction (default: 34  / values 20-59)\n"
 		"\t-l Low Noise Amplifier level (default: 1-auto / values 0-off)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
@@ -714,10 +697,9 @@ void usage(void)
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W wideband enable* (default: disabled)\n"
-		"\t-A Auto Gain Control Setpoint (default: -24 / values 0 to -60)\n"
+		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
-		"\t-b Bits used for conversion to 8bit (default:16 / values 12/13/14/15/16)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable (default: disabled)\n"
 		"\n\n" );
@@ -754,14 +736,11 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:b:s:n:d:P:A:o:G:lWwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:lWwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
 			break;
-		case 'b':
-                        sample_bits = atof(optarg);
-                        break;
 		case 'P':
 			antenna = atoi(optarg);
 			break;
@@ -985,7 +964,6 @@ int main(int argc, char **argv)
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
 		printf("Low-Noise-Amp mode set %u (0=off 1=on)\n", rspLNA);
 		printf("Gain-Reduction set %d (59=max 20=min)\n", gainReduction);
-		printf("Bits used for conversion to 8 bit is %g bits\n", (sample_bits));
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
