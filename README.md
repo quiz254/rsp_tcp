@@ -25,7 +25,7 @@ Usage:
 	
 	-P Antenna Port select* (0/1/2, default: 0, Port A)
 	
-	-r Gain reduction (default: 40 / values 0 upto 59)
+	-r Gain reduction (default: 34 / values 0 upto 59)
 	
 	-l Low Noise Amplifier disable* (default: enabled)
 	
@@ -43,13 +43,11 @@ Usage:
 	
 	-W wideband enable* (default: disabled)
 			
-	-A Auto Gain Control (default: -24 / values 0 to -60)
+	-A Auto Gain Control (default: -34 / values 0 to -60)
 	
 	-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)
 	
 	-n max number of linked list buffers to keep (default: 512)
-	
-	-b Bit conversion to 8bit (default: 16 / values 12/13/14/15/16 - 98/99 exprimental)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
 	
@@ -77,22 +75,13 @@ Usage:
  - The goal of this software is ONLY to work well with websdr.org, no other websdr servers or RTL-compatible software but it may work.
 
 ## TODO
- - Find a way to send 16bit samples, so far no luck.
- - BiasT doesn't work no matter what I try, tested 2 RSP1A no BiasT
+  - BiasT doesn't work no matter what I try, tested 2 RSP1A no BiasT
  
 ## HISTORY (later versions are forked by Bas ON5HB from original of F4FHH)
  - Version 0.1.0: Initial build
  - Version 0.1.4: Added extra options Bas.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
- - Version 1.1.5: Removed clicks on overloads.
- - Version 1.1.6: -w removed and combined with -W to avoid ghost-signals appear. Many new bit conversions and default to 15.5bit.
- - Version 1.1.7: 14.5bit as default and fixed box reporting, now correct and box-name, only tested on RSP1A.
- - Version 1.1.8: Reworked the conversion to 8 bit again, spikes don't matter. Wideband disabled by default, no use for 2048MSPS.
- - Version 1.1.9: Added -b99 mode, does 14bit with experimental dithering.
- - Version 1.2.0: Changed rounding for dithering.
- - Version 1.2.1: Better default rf-gain and AGC as well as internal gain fixed.
- - Version 1.2.2: Removed manual LNA setting, can only be set on of off, also some more bugs fixed.
- - Version 1.2.3: CTRL-C fixed, it exits on the first press, bugged me for a while :-)
+ - Version 1.2.6: Finally found the correct convversion to 8bit :-)
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
