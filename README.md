@@ -9,7 +9,8 @@
 
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
 
-As the rtl_tcp protocol is only 8 bits IQ it still uses the 15bit range, but you can reduce it:
+As the rtl_tcp protocol is only 8 bits IQ but uses the 14bit range.
+Because the ENOB of the RSP is a lot better, the output quality is far better then the RTL-stick.
 
 1. It will work with any rtl_tcp capable frontend (probably), see usage below
 2. As it's opensource, you could compile it on any Linux server
@@ -81,7 +82,7 @@ Usage:
  - Version 0.1.0: Initial build
  - Version 0.1.4: Added extra options Bas.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
- - Version 1.2.6: Finally found the correct convversion to 8bit :-)
+ - Version 1.2.6: Finally found the correct conversion to 8bit :-)
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
