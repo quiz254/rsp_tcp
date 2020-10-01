@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _WIN32
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -31,26 +30,13 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <math.h>
-#else
-#include <winsock2.h>
-#include "getopt/getopt.h"
-#endif
-
 #include <pthread.h>
-
 #include <mirsdrapi-rsp.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "ws2_32.lib")
-
-typedef int socklen_t;
-
-#else
 #define closesocket close
 #define SOCKADDR struct sockaddr
 #define SOCKET int
 #define SOCKET_ERROR -1
-#endif
 
 static SOCKET s;
 
@@ -150,50 +136,11 @@ static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 static int agctype = 5; // just the number of above
 
 
-#ifdef _WIN32
-int gettimeofday(struct timeval *tv, void *ignored)
-{
-    FILETIME ft;
-    unsigned __int64 tmp = 0;
-    if (NULL != tv) {
-        GetSystemTimeAsFileTime(&ft);
-        tmp |= ft.dwHighDateTime;
-        tmp <<= 32;
-        tmp |= ft.dwLowDateTime;
-        tmp /= 10;
-#ifdef _MSC_VER
-        tmp -= 11644473600000000Ui64;
-#else
-        tmp -= 11644473600000000ULL;
-#endif
-        tv->tv_sec = (long)(tmp / 1000000UL);
-        tv->tv_usec = (long)(tmp % 1000000UL);
-    }
-    return 0;
-}
-
-BOOL WINAPI
-sighandler(int signum)
-{
-    if (CTRL_C_EVENT == signum) {
-        fprintf(stderr, "CTRL-C caught, exiting!\n");
-        do_exit = 1;
-        ctrlC_exit = 1;
-        return TRUE;
-    } else if (CTRL_CLOSE_EVENT == signum) {
-        fprintf(stderr, "SIGQUIT caught, exiting!\n");
-        do_exit = 1;
-        return TRUE;
-    }
-    return FALSE;
-}
-#else
 static void sighandler(int signum)
 {
     fprintf(stderr, "Signal (%d) caught, ask for exit!\n", signum);
     do_exit = 1;
 }
-#endif
 
 void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void *cbContext )
 {
@@ -525,17 +472,10 @@ static int set_sample_rate(uint32_t sr)
     return r;
 }
 
-#ifdef _WIN32
-#define __attribute__(x)
-#pragma pack(push, 1)
-#endif
 struct command {
     unsigned char cmd;
     unsigned int param;
 }__attribute__((packed));
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
 
 static void *command_worker(void *arg)
 {
@@ -694,12 +634,7 @@ int main(int argc, char **argv)
     unsigned int numDevs;
 /////waardes
 
-#ifdef _WIN32
-    WSADATA wsd;
-    i = WSAStartup(MAKEWORD(2, 2), &wsd);
-#else
     struct sigaction sigact, sigign;
-#endif
 
     while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:lWwTvDBR")) != -1) {
         switch (opt) {
@@ -862,7 +797,6 @@ int main(int argc, char **argv)
     mir_sdr_RSPII_ExternalReferenceControl(enable_refout);
     mir_sdr_rspDuo_ExtRef(enable_refout);
 
-#ifndef _WIN32
     sigact.sa_handler = sighandler;
     sigemptyset(&sigact.sa_mask);
     sigact.sa_flags = 0;
@@ -871,9 +805,6 @@ int main(int argc, char **argv)
     sigaction(SIGTERM, &sigact, NULL);
     sigaction(SIGQUIT, &sigact, NULL);
     sigaction(SIGPIPE, &sigign, NULL);
-#else
-    SetConsoleCtrlHandler( (PHANDLER_ROUTINE) sighandler, TRUE );
-#endif
 
     //pthread_mutex_init(&exit_cond_lock, NULL);
     pthread_mutex_init(&ll_mutex, NULL);
@@ -892,12 +823,8 @@ int main(int argc, char **argv)
     setsockopt(listensocket, SOL_SOCKET, SO_LINGER, (char *)&ling, sizeof (ling));
     bind(listensocket, (struct sockaddr *)&local, sizeof (local));
 
-#ifdef _WIN32
-    ioctlsocket(listensocket, FIONBIO, &blockmode);
-#else
     r = fcntl(listensocket, F_GETFL, 0);
     r = fcntl(listensocket, F_SETFL, r | O_NONBLOCK);
-#endif
 
     while (1) {
         printf("listening...\n");
@@ -998,9 +925,6 @@ out:
 
     closesocket(listensocket);
     closesocket(s);
-#ifdef _WIN32
-    WSACleanup();
-#endif
     printf("bye!\n");
     return r >= 0 ? r : -r;
 }
