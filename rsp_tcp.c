@@ -160,9 +160,6 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum,
     int grChanged, int rfChanged, int fsChanged, unsigned int numSamples,
     unsigned int reset, unsigned int hwRemoved, void *cbContext)
 {
-    unsigned int i;
-    short xi2 = 0;
-    short xq2 = 0;
     if (!do_exit) {
         struct llist *rpt = (struct llist *)malloc(sizeof (struct llist));
         rpt->data = malloc(2 * numSamples * sizeof(short));
@@ -170,7 +167,11 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum,
         unsigned char *data;
         data = (unsigned char *)rpt->data;
 
+        unsigned int i;
         for (i = 0; i < numSamples; i++, xi++, xq++) {
+            short xi2 = 0;
+            short xq2 = 0;
+
             if (*xi < -8192) {
                 xi2 = -8192;
             } else if (*xi > 8191) {
@@ -237,9 +238,10 @@ static void *tcp_worker(void *arg)
     struct timespec ts;
     struct timeval tp;
     fd_set writefds;
-    int r = 0;
 
     while (1) {
+        int r = 0;
+
         if (do_exit) {
             pthread_exit(0);
         }
@@ -479,7 +481,7 @@ struct command {
 
 static void *command_worker(void *arg)
 {
-    int left, received = 0;
+    int received = 0;
     fd_set readfds;
     struct command cmd = {0, 0};
     struct timeval tv = {1, 0};
@@ -487,6 +489,7 @@ static void *command_worker(void *arg)
     uint32_t tmp;
 
     while (1) {
+        int left = 0;
         left = sizeof (cmd);
         while (left > 0) {
             FD_ZERO(&readfds);
