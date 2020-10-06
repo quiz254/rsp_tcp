@@ -457,7 +457,7 @@ static int set_sample_rate(uint32_t sr)
 
     if (deci <= 1 ) {
         mir_sdr_DecimateControl(0, 0, 0);
-    } else if (deci > 1 ) {
+    } else {
         mir_sdr_DecimateControl(1, deci, 0);
     }
 
