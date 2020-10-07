@@ -188,8 +188,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum,
                 xq2 = *xq;
             }
 
-            *(data++) = ((((unsigned char)xi2 >> 6 ) &0xFF) +128.4);
-            *(data++) = ((((unsigned char)xq2 >> 6 ) &0xFF) +128.4);
+            *(data++) = ((((unsigned short)xi2 >> 6 ) &0xFF) +128.4);
+            *(data++) = ((((unsigned short)xq2 >> 6 ) &0xFF) +128.4);
             // I/Q value reader - if enabled show values
             //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
             //printf("xi=%hd,xq=%hd\n",(*xi >> 7),(*xq >> 7));}
