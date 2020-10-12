@@ -217,10 +217,10 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 	short xq2=0;
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
-		rpt->data = malloc(2 * numSamples * sizeof(short));
+		rpt->data = (char*)malloc(2 * numSamples);
 			// assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
+                        char *data;
+                        data = rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 				if (*xi < -8192)
@@ -234,8 +234,13 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                                         {xq2 = 8191;}
                                 else {xq2 = *xq;}
 
-                                        *(data++) = (((xi2 >> 6 ) &0xFF) +128.4);
-                                        *(data++) = (((xq2 >> 6 ) &0xFF) +128.4);
+//                                        *(data++) = (unsigned char)(((xi2 >> 6 ) &0xFF) +128.4);
+//                                        *(data++) = (unsigned char)(((xq2 >> 6 ) &0xFF) +128.4);
+					  *(data++) = (unsigned char)((xi2 / 32) +128.4);
+			                  *(data++) = (unsigned char)((xq2 / 32) +128.4);
+
+
+
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
 //printf("xi=%hd,xq=%hd\n",(*xi >> 7),(*xq >> 7));}
