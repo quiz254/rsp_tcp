@@ -236,8 +236,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
 //                                        *(data++) = (unsigned char)(((xi2 >> 6 ) &0xFF) +128.4);
 //                                        *(data++) = (unsigned char)(((xq2 >> 6 ) &0xFF) +128.4);
-					  *(data++) = (unsigned char)((xi2 / 32) +128.4);
-			                  *(data++) = (unsigned char)((xq2 / 32) +128.4);
+					  *(data++) = (unsigned char)((xi2 + 8192) /64);
+			                  *(data++) = (unsigned char)((xq2 + 8192) /64);
 
 
 
