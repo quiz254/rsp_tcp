@@ -26,9 +26,11 @@ Usage:
 	
 	-P Antenna Port select* (0/1/2, default: 0, Port A)
 	
-	-r Gain reduction (default: 34 / values 0 upto 59)
+	-r Gain reduction (default: 34 / values 20-59)
 	
 	-l Low Noise Amplifier disable* (default: enabled)
+	
+	-L L Lineair or Logarithm conversion* (default: lin)
 	
 	-T Bias-T enable* (default: disabled)
 	
@@ -46,7 +48,7 @@ Usage:
 			
 	-A Auto Gain Control (default: -34 / values 0 to -60)
 	
-	-G Auto Gain Control Loop-bandwidth in Hz (default: 50 / values 0/5/50/100)
+	-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)
 	
 	-n max number of linked list buffers to keep (default: 512)
 	
