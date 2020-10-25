@@ -70,6 +70,7 @@ Usage:
   cmake ..
   make
   sudo make install
+  (run: ldconfig if devices are not indexed after install)
 ```
 ## NOTES
  - a RSP API version 2.13 (no other tested!) must be installed on the linux server, see [sdrplay linux downloads](https://www.sdrplay.com/downloads/)
@@ -85,6 +86,7 @@ Usage:
  - Version 0.1.4: Added extra options Bas.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
  - Version 1.2.6: Finally found the correct conversion to 8bit :-)
+ - Version 1.3.1: Added Lineair or Logarithmic conversion.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
