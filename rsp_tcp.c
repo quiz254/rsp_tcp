@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _WIN32
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -31,26 +30,13 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <math.h>
-#else
-#include <winsock2.h>
-#include "getopt/getopt.h"
-#endif
-
 #include <pthread.h>
-
 #include <mirsdrapi-rsp.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "ws2_32.lib")
-
-typedef int socklen_t;
-
-#else
 #define closesocket close
 #define SOCKADDR struct sockaddr
 #define SOCKET int
 #define SOCKET_ERROR -1
-#endif
 
 static SOCKET s;
 
@@ -142,57 +128,17 @@ static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int opt_deci = 0;
 static int deci = 1; // deci=1 means disabled, enabled is 2/4/8/16/etc
+static int wortel = 0;
 
 ////AGC beware to change all!
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
 static int agctype = 5; // just the number of above
 
-
-#ifdef _WIN32
-int gettimeofday(struct timeval *tv, void* ignored)
-{
-	FILETIME ft;
-	unsigned __int64 tmp = 0;
-	if (NULL != tv) {
-		GetSystemTimeAsFileTime(&ft);
-		tmp |= ft.dwHighDateTime;
-		tmp <<= 32;
-		tmp |= ft.dwLowDateTime;
-		tmp /= 10;
-#ifdef _MSC_VER
-		tmp -= 11644473600000000Ui64;
-#else
-		tmp -= 11644473600000000ULL;
-#endif
-		tv->tv_sec = (long)(tmp / 1000000UL);
-		tv->tv_usec = (long)(tmp % 1000000UL);
-	}
-	return 0;
-}
-
-BOOL WINAPI
-sighandler(int signum)
-{
-	if (CTRL_C_EVENT == signum) {
-		fprintf(stderr, "CTRL-C caught, exiting!\n");
-		do_exit = 1;
-		ctrlC_exit = 1;
-		return TRUE;
-	}
-	else if (CTRL_CLOSE_EVENT == signum) {
-		fprintf(stderr, "SIGQUIT caught, exiting!\n");
-		do_exit = 1;
-		return TRUE;
-	}
-	return FALSE;
-}
-#else
 static void sighandler(int signum)
 {
 	fprintf(stderr, "Signal (%d) caught, ask for exit!\n", signum);
 	do_exit = 1;
 }
-#endif
 
 void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 {
@@ -215,6 +161,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
         unsigned int i;
 	short xi2=0;
 	short xq2=0;
+	unsigned char xi3=0;
+	unsigned char xq3=0;
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		rpt->data = (char*)malloc(2 * numSamples);
@@ -223,23 +171,26 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
-				if (*xi < -8192)
-                        		{xi2 = -8192;}
+				if (*xi < -8191)
+                        		{xi2 = 0;}
 			        else if (*xi > 8191)
-                        		{xi2 = 8191;}
-			        else {xi2 = *xi;}
-				if (*xq < -8192)
-                                        {xq2 = -8192;}
+                        		{xi2 = 16383;}
+			        else {xi2 = *xi + 8192;}
+				if (*xq < -8191)
+                                        {xq2 = 0;}
                                 else if (*xq > 8191)
-                                        {xq2 = 8191;}
-                                else {xq2 = *xq;}
+                                        {xq2 = 16383;}
+                                else {xq2 = *xq + 8192;}
 
-//                                        *(data++) = (unsigned char)(((xi2 >> 6 ) &0xFF) +128.4);
-//                                        *(data++) = (unsigned char)(((xq2 >> 6 ) &0xFF) +128.4);
-					  *(data++) = (unsigned char)((xi2 + 8192) /64);
-			                  *(data++) = (unsigned char)((xq2 + 8192) /64);
+			if (wortel == 0) {
+				xi3 = xi2 / 64;
+                                xq3 = xq2 / 64;}
+			else {
+				xi3 = sqrt(xi2*3.99);
+				xq3 = sqrt(xq2*3.99);}
 
-
+			*(data++) = xi3;
+			*(data++) = xq3;
 
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
@@ -565,17 +516,10 @@ static int set_sample_rate(uint32_t sr)
 	return r;
 }
 
-#ifdef _WIN32
-#define __attribute__(x)
-#pragma pack(push, 1)
-#endif
 struct command{
 	unsigned char cmd;
 	unsigned int param;
 }__attribute__((packed));
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
 
 static void *command_worker(void *arg)
 {
@@ -692,9 +636,10 @@ void usage(void)
 		"\t-a Listen address (default: 127.0.0.1)\n"
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
-		"\t-P Antenna Port select* (0/1/2, default: 0, Port A)\n"
+		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 34  / values 20-59)\n"
-		"\t-l Low Noise Amplifier level (default: 1-auto / values 0-off)\n"
+		"\t-l Low Noise Amplifier level* (default: 1-auto / values 0-off)\n"
+		"\t-L Lineair or Logarithm conversion* (default: lin)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB Notch disable* (default: enabled)\n"
 		"\t-B Broadcast Notch disable* (default: enabled)\n"
@@ -706,8 +651,8 @@ void usage(void)
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
-		"\t-v Verbose output (debug) enable (default: disabled)\n"
-		"\n\n" );
+		"\t-v Verbose output (debug) enable* (default: disabled)\n"
+		"\n\t* marked options are switches they toggle on/off\n\n" );
 	exit(1);
 }
 
@@ -734,14 +679,9 @@ int main(int argc, char **argv)
 	unsigned int numDevs;
 /////waardes
 
-#ifdef _WIN32
-	WSADATA wsd;
-	i = WSAStartup(MAKEWORD(2,2), &wsd);
-#else
 	struct sigaction sigact, sigign;
-#endif
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:lWwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:lLWwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -778,6 +718,9 @@ int main(int argc, char **argv)
 		case 'l':
 			rspLNA = 0;
 			break;
+		case 'L':
+                        wortel = 1;
+                        break;
                 case 'G':
                         agctype = atoi(optarg);
                         break;
@@ -902,7 +845,6 @@ int main(int argc, char **argv)
         mir_sdr_rspDuo_ExtRef(enable_refout);
 
 
-#ifndef _WIN32
 	sigact.sa_handler = sighandler;
 	sigemptyset(&sigact.sa_mask);
 	sigact.sa_flags = 0;
@@ -911,9 +853,6 @@ int main(int argc, char **argv)
 	sigaction(SIGTERM, &sigact, NULL);
 	sigaction(SIGQUIT, &sigact, NULL);
 	sigaction(SIGPIPE, &sigign, NULL);
-#else
-	SetConsoleCtrlHandler( (PHANDLER_ROUTINE) sighandler, TRUE );
-#endif
 
 	//pthread_mutex_init(&exit_cond_lock, NULL);
 	pthread_mutex_init(&ll_mutex, NULL);
@@ -932,12 +871,8 @@ int main(int argc, char **argv)
 	setsockopt(listensocket, SOL_SOCKET, SO_LINGER, (char *)&ling, sizeof(ling));
 	bind(listensocket,(struct sockaddr *)&local,sizeof(local));
 
-#ifdef _WIN32
-	ioctlsocket(listensocket, FIONBIO, &blockmode);
-#else
 	r = fcntl(listensocket, F_GETFL, 0);
 	r = fcntl(listensocket, F_SETFL, r | O_NONBLOCK);
-#endif
 
 	while(1) {
 		printf("listening...\n");
@@ -969,6 +904,7 @@ int main(int argc, char **argv)
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
 		printf("Low-Noise-Amp mode set %u (0=off 1=on)\n", rspLNA);
 		printf("Gain-Reduction set %d (59=max 20=min)\n", gainReduction);
+		printf("Lineair or Logarithm mode set %d (0=Lin 1=Log)\n", wortel);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
@@ -1038,9 +974,6 @@ out:
 
 	closesocket(listensocket);
 	closesocket(s);
-#ifdef _WIN32
-	WSACleanup();
-#endif
 	printf("bye!\n");
 	return r >= 0 ? r : -r;
 }
