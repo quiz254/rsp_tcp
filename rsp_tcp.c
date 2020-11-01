@@ -647,7 +647,7 @@ void usage(void)
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W wideband enable* (default: disabled)\n"
-		"\t-A Auto Gain Control Setpoint (default: -34 / values 0 to -60)\n"
+		"\t-A Auto Gain Control Setpoint (default: -34 / values -1 to -69 / other disabled)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
