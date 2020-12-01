@@ -29,9 +29,7 @@ Usage:
 	-r Gain reduction (default: 34 / values 20-59)
 	
 	-l Low Noise Amplifier disable* (default: enabled)
-	
-	-L L Lineair or Logarithm conversion* (default: lin)
-	
+			
 	-T Bias-T enable* (default: disabled)
 	
 	-D DAB Notch disable* (default: enabled)
@@ -86,7 +84,7 @@ Usage:
  - Version 0.1.4: Added extra options Bas.
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
  - Version 1.2.6: Finally found the correct conversion to 8bit :-)
- - Version 1.3.1: Added Lineair or Logarithmic conversion.
+ - Version 1.3.3: Conversion error.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
