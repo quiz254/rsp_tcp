@@ -128,7 +128,6 @@ static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int opt_deci = 0;
 static int deci = 1; // deci=1 means disabled, enabled is 2/4/8/16/etc
-static int wortel = 0;
 
 ////AGC beware to change all!
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
@@ -161,36 +160,27 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
         unsigned int i;
 	short xi2=0;
 	short xq2=0;
-	unsigned char xi3=0;
-	unsigned char xq3=0;
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		rpt->data = (char*)malloc(2 * numSamples);
 			// assemble the data
-                        char *data;
-                        data = rpt->data;
+                        unsigned char *data;
+                        data = (unsigned char*)rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 				if (*xi < -8191)
-                        		{xi2 = 0;}
+                        		{xi2 = -8192;}
 			        else if (*xi > 8191)
-                        		{xi2 = 16383;}
-			        else {xi2 = *xi + 8192;}
+                        		{xi2 = 8191;}
+			        else {xi2 = *xi;}
 				if (*xq < -8191)
-                                        {xq2 = 0;}
+                                        {xq2 = -8192;}
                                 else if (*xq > 8191)
-                                        {xq2 = 16383;}
-                                else {xq2 = *xq + 8192;}
+                                        {xq2 = 8191;}
+                                else {xq2 = *xq;}
 
-			if (wortel == 0) {
-				xi3 = xi2 / 64;
-                                xq3 = xq2 / 64;}
-			else {
-				xi3 = sqrt(xi2*3.99);
-				xq3 = sqrt(xq2*3.99);}
-
-			*(data++) = xi3;
-			*(data++) = xq3;
+				*(data++) = (unsigned char)((xi2 << 2) >> 8) + 128.5;
+                                *(data++) = (unsigned char)((xq2 << 2) >> 8) + 128.5;
 
 // I/Q value reader - if enabled show values
 //if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
@@ -639,7 +629,6 @@ void usage(void)
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 34  / values 20-59)\n"
 		"\t-l Low Noise Amplifier level* (default: 1-auto / values 0-off)\n"
-		"\t-L Lineair or Logarithm conversion* (default: lin)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB bandfilter* (default: enabled)\n"
 		"\t-B MW bandfilter* (default: enabled)\n"
@@ -681,7 +670,7 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:lLWwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:L:lWwTvDBR")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -718,9 +707,6 @@ int main(int argc, char **argv)
 		case 'l':
 			rspLNA = 0;
 			break;
-		case 'L':
-                        wortel = 1;
-                        break;
                 case 'G':
                         agctype = atoi(optarg);
                         break;
@@ -821,6 +807,8 @@ int main(int argc, char **argv)
 			mir_sdr_AmPortSelect(0);
 	}
 
+	// set transport mode 0=ISOCH of 1=BULK
+	mir_sdr_SetTransferMode(0);
 	// enable DC offset and IQ imbalance correction
 	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	// enable AGC with a setPoint of -30dBfs
@@ -904,7 +892,6 @@ int main(int argc, char **argv)
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
 		printf("Low-Noise-Amp mode set %u (0=off 1=on)\n", rspLNA);
 		printf("Gain-Reduction set %d (59=max 20=min)\n", gainReduction);
-		printf("Lineair or Logarithm mode set %d (0=Lin 1=Log)\n", wortel);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
