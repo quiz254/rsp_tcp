@@ -116,7 +116,8 @@ static int infoOverallGr;
 static int samples_per_packet;
 static int last_gain_idx = 0;
 static int verbose = 0;
-static int wideband = 0;
+static int wideband = 2; // wideband 0=small / 1=wide / 2=optimised for samplerate
+static int edgefilter = 0;
 
 ////waardes
 static int devAvail = 0;
@@ -126,8 +127,7 @@ static int enable_biastee = 0;
 static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
-static int opt_deci = 0;
-static int deci = 1; // deci=1 means disabled, enabled is 2/4/8/16/etc
+static int deci = 1;
 
 ////AGC beware to change all!
 static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
@@ -369,131 +369,89 @@ static int set_sample_rate(uint32_t sr)
 	int r;
 	double f;
 
-	if (sr < 64000 || sr > 10000000) {
-                printf("sample rate %u is not supported\n", sr);
-                return -1;
-        }
+	if (sr < (2000000 / MAX_DECIMATION_FACTOR) || sr > 10000000) {
+		fprintf(stderr, "sample rate %u is not supported\n", sr);
+		return -1;
+	}
 
-	else if (opt_deci == 1)
-        {
-                int c = 0;
+	if (sr < 2000000)
+	{
+		int c = 0;
 
-                // Find best decimation factor
-                while (sr * (1 << c) < 10000000 && (1 << c) <= MAX_DECIMATION_FACTOR) {
-                        c++; }
+		// Find best decimation factor
+		while (sr * (1 << c) < 2000000 && (1 << c) < MAX_DECIMATION_FACTOR) {
+			c++;
+		}
 
-		deci = 1 << (c-1);
+		deci = 1 << c;
 
-		if (sr >= 6000000)
-                {
-                        if (wideband == 1) bwType = mir_sdr_BW_8_000;
-                        else bwType = mir_sdr_BW_6_000;
-                }
-		else if (sr >= 5000000 && sr < 6000000)
-                {
-                        if (wideband == 1) bwType = mir_sdr_BW_6_000;
-                        else bwType = mir_sdr_BW_5_000;
-                }
-		else if (sr >= 2000000 && sr < 5000000)
-                {
+		if (sr >= 1536000 && sr < 2000000)
+		{
 			if (wideband == 1) bwType = mir_sdr_BW_5_000;
+			else bwType = mir_sdr_BW_1_536;
+		}
+		else
+		if (sr >= 600000 && sr < 1536000)
+		{
+			if (wideband >= 1) bwType = mir_sdr_BW_1_536;
+			else bwType = mir_sdr_BW_0_600;
+		}
+		else
+		if (sr >= 300000 && sr < 600000)
+		{
+			if (wideband >= 1) bwType = mir_sdr_BW_0_600;
+			else bwType = mir_sdr_BW_0_300;
+		}
+		else
+		{
+			if (wideband >= 1 && sr >= 256000) bwType = mir_sdr_BW_0_300;
+			else bwType = mir_sdr_BW_0_200;
+		}
+	}
+	else
+	{
+		if (sr >= 8000000 && sr <= 10000000)
+		{
+			bwType = mir_sdr_BW_8_000;
+		}
+		else
+		if (sr >= 7000000 && sr < 8000000)
+		{
+			bwType = mir_sdr_BW_7_000;
+		}
+		else
+		if (sr >= 6000000 && sr < 7000000)
+		{
+			bwType = mir_sdr_BW_6_000;
+		}
+		else
+		if (sr >= 5000000 && sr < 6000000)
+		{
+			bwType = mir_sdr_BW_5_000;
+		}
+		else
+		if (sr >= 2500000 && sr < 5000000)
+		{
+			// deci = 2;
+			if (wideband >= 1 && sr >= 2880000) bwType = mir_sdr_BW_5_000;
+			else bwType = mir_sdr_BW_1_536;
+		}
+		else
+		{
+			if (wideband == 1 && sr >= 2048000) bwType = mir_sdr_BW_5_000;
                         else bwType = mir_sdr_BW_1_536;
-                }
-		else if (sr >= 600000 && sr < 1536000)
-                {
-			if (wideband == 1) bwType = mir_sdr_BW_1_536;
-                        else bwType = mir_sdr_BW_0_600;
-                }
-                else if (sr >= 300000 && sr < 600000)
-                {
-			if (wideband == 1) bwType = mir_sdr_BW_0_600;
-                        else bwType = mir_sdr_BW_0_300;
-                }
-                else if (sr >= 200000 && sr < 300000)
-                {
-			if (wideband == 1) bwType = mir_sdr_BW_0_300;
-                        else bwType = mir_sdr_BW_0_200;
 
-                }
-		else if (sr <= 200000)
-                {
-                        bwType = mir_sdr_BW_0_200;
-                }
-        }
-        else
-        {
-                if (sr == 2048000 || sr == 2880000 || sr == 5760000)
-                {
-                        deci = 1;
-                        if (opt_deci > 1) deci = opt_deci;
-                        if (wideband == 1) bwType = mir_sdr_BW_5_000;
-                        else bwType = mir_sdr_BW_1_536;
-                }
-		else if (sr == 1536000)
-                {
-                        deci = 2;
-                        if (opt_deci > 2) deci = opt_deci;
-                        bwType = mir_sdr_BW_1_536;
-                }
-                else if (sr == 1024000)
-                {
-                        deci = 2;
-			if (opt_deci > 2) deci = opt_deci;
-			if (wideband == 1) bwType = mir_sdr_BW_1_536;
-                        else bwType = mir_sdr_BW_0_600;
-                }
-		else if (sr == 768000)
-                {
-                        deci = 4;
-			if (opt_deci > 4 ) deci = opt_deci;
-			if (wideband == 1) bwType = mir_sdr_BW_1_536;
-                        else bwType = mir_sdr_BW_0_600;
-                }
-                else if (sr == 512000)
-                {
-                        deci = 4;
-			if (opt_deci > 4) deci = opt_deci;
-                        if (wideband == 1) bwType = mir_sdr_BW_0_600;
-                        else bwType = mir_sdr_BW_0_300;
-                }
-		else if (sr == 384000)
-                {
-                        deci = 8;
-			if (opt_deci > 8) deci = opt_deci;
-			if (wideband == 1) bwType = mir_sdr_BW_0_600;
-                        else bwType = mir_sdr_BW_0_300;
-                }
-                else if (sr == 256000)
-                {
-                        deci = 8;
-			if (opt_deci > 8) deci = opt_deci;
-			if (wideband == 1) bwType = mir_sdr_BW_0_300;
-                        else bwType = mir_sdr_BW_0_200;
-                }
-                else if (sr == 128000 || sr == 192000)
-                {
-                        deci = 16;
-			if (opt_deci > 16) deci = opt_deci;
-                        bwType = mir_sdr_BW_0_200;
-                }
-                else if (sr == 64000 || sr == 96000)
-                {
-                        deci = 32;
-                        bwType = mir_sdr_BW_0_200;
-                }
-                else
-                {
-                printf("sample rate %u is not supported\n", sr);
-                return -1;
-                }
+		}
 	}
 
 	f = (double)(sr * deci);
 
-	if (deci <= 1 )
+	if (deci <= 1 && edgefilter == 0)
 		mir_sdr_DecimateControl(0, 0, 0);
-	else if (deci > 1 )
+	else if (deci >= 1 && edgefilter == 0)
                 mir_sdr_DecimateControl(1, deci, 0);
+	else if (deci >= 1 && edgefilter >= 1)
+		mir_sdr_DecimateControl(1, deci, 1);
 
 	printf("device SR %.2f, decim %d, output SR %u, IF Filter BW %d kHz\n", f, deci, sr, bwType);
 
@@ -635,11 +593,11 @@ void usage(void)
 		"\t-R Refclk output enable* (default: disabled)\n"
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
-		"\t-W wideband enable* (default: disabled)\n"
+		"\t-W wideband enable (default: 2 / values: 0 small / 1 wide / 2 = optimised)\n"
+		"\t-E Edgefilter digital enable* (default: disabled)\n"
 		"\t-A Auto Gain Control Setpoint (default: -34 / values -1 to -69 / other disabled)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
-		"\t-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n"
 		"\n\t* marked options are switches they toggle on/off\n\n" );
 	exit(1);
@@ -670,7 +628,7 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:o:G:L:lWwTvDBR")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:G:L:W:lTvDBRE")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -702,8 +660,12 @@ int main(int argc, char **argv)
 			llbuf_num = atoi(optarg);
 			break;
                 case 'W':
-                        wideband = 1;
+                        wideband = atoi(optarg);
                         break;
+		case 'E':
+                        edgefilter = 1;
+                        break;
+
 		case 'l':
 			rspLNA = 0;
 			break;
@@ -722,9 +684,6 @@ int main(int argc, char **argv)
 		case 'R':
 			enable_refout = 1;
 			break;
-		case 'o':
-			opt_deci = atoi(optarg);
-			break;
 		case 'v':
 			verbose = 1;
 			break;
@@ -741,7 +700,7 @@ int main(int argc, char **argv)
 		agctype = 0;}
 
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = 54;
-	if (wideband !=0) wideband = 1;
+	if (wideband !=0) wideband = 2;
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
@@ -892,6 +851,7 @@ int main(int argc, char **argv)
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
 		printf("Low-Noise-Amp mode set %u (0=off 1=on)\n", rspLNA);
 		printf("Gain-Reduction set %d (59=max 20=min)\n", gainReduction);
+		printf("Edgefilter set %d (0=off 1=on)\n", edgefilter);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
