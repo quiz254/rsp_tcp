@@ -136,7 +136,7 @@ static int agctype = 5; // just the number of above
 static void sighandler(int signum)
 {
 	fprintf(stderr, "Signal (%d) caught, ask for exit!\n", signum);
-	do_exit = 1;
+	exit(signum);
 }
 
 void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
@@ -403,9 +403,14 @@ static int set_sample_rate(uint32_t sr)
 			else bwType = mir_sdr_BW_0_300;
 		}
 		else
+		if (sr >= 200000 && sr < 300000)
+                {
+                        if (wideband >= 1) bwType = mir_sdr_BW_0_300;
+                        else bwType = mir_sdr_BW_0_200;
+                }
+		else
 		{
-			if (wideband >= 1 && sr >= 256000) bwType = mir_sdr_BW_0_300;
-			else bwType = mir_sdr_BW_0_200;
+			bwType = mir_sdr_BW_0_200;
 		}
 	}
 	else
@@ -628,7 +633,7 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:G:L:W:lTvDBRE")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:G:W:TlvDBRE")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -665,7 +670,6 @@ int main(int argc, char **argv)
 		case 'E':
                         edgefilter = 1;
                         break;
-
 		case 'l':
 			rspLNA = 0;
 			break;
@@ -766,8 +770,6 @@ int main(int argc, char **argv)
 			mir_sdr_AmPortSelect(0);
 	}
 
-	// set transport mode 0=ISOCH of 1=BULK
-	mir_sdr_SetTransferMode(0);
 	// enable DC offset and IQ imbalance correction
 	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	// enable AGC with a setPoint of -30dBfs
@@ -911,7 +913,7 @@ int main(int argc, char **argv)
 			free(prev);
 		}
 
-		do_exit = 0;
+		if (!ctrlC_exit) do_exit = 0;
 		global_numq = 0;
 	}
 
