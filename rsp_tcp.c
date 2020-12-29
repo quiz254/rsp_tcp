@@ -635,7 +635,7 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:G:W:TlvDBRE")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:G:W::TlvDBRE")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -772,30 +772,6 @@ int main(int argc, char **argv)
 			mir_sdr_AmPortSelect(0);
 	}
 
-	// enable DC offset and IQ imbalance correction
-	mir_sdr_DCoffsetIQimbalanceControl(1, 1);
-	// enable AGC with a setPoint of -30dBfs
-	mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
-        // set the DC offset correction mode for the tuner (moved from below)
-        mir_sdr_SetDcMode(4, 1);
-        // set the time period over which the DC offset is tracked when in one shot mode.
-        mir_sdr_SetDcTrackTime(10);
-        // set Bias-T
-        mir_sdr_RSPII_BiasTControl(enable_biastee);
-        mir_sdr_rsp1a_BiasT(enable_biastee);
-        mir_sdr_rspDuo_BiasT(enable_biastee);
-        // set Notch
-        mir_sdr_RSPII_RfNotchEnable(enable_broadcastnotch);
-        mir_sdr_rsp1a_DabNotch(enable_dabnotch);
-        mir_sdr_rsp1a_BroadcastNotch(enable_broadcastnotch);
-        mir_sdr_rspDuo_DabNotch(enable_dabnotch);
-        mir_sdr_rspDuo_BroadcastNotch(enable_broadcastnotch);
-        mir_sdr_rspDuo_Tuner1AmNotch(enable_broadcastnotch);
-        // set external reference output
-        mir_sdr_RSPII_ExternalReferenceControl(enable_refout);
-        mir_sdr_rspDuo_ExtRef(enable_refout);
-
-
 	sigact.sa_handler = sighandler;
 	sigemptyset(&sigact.sa_mask);
 	sigact.sa_flags = 0;
@@ -887,8 +863,30 @@ int main(int argc, char **argv)
 		}
 		fprintf(stderr,"started rx\n");
 
-//Notches and other stuff removed from here....
-//Moved up.
+//Notches and other stuff must be here!!....
+
+	       // enable DC offset and IQ imbalance correction
+	        mir_sdr_DCoffsetIQimbalanceControl(1, 1);
+	        // enable AGC with a setPoint of -30dBfs
+	        mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
+	        // set the DC offset correction mode for the tuner (moved from below)
+	        mir_sdr_SetDcMode(4, 1);
+	        // set the time period over which the DC offset is tracked when in one shot mode.
+	        mir_sdr_SetDcTrackTime(10);
+	        // set Bias-T
+	        mir_sdr_RSPII_BiasTControl(enable_biastee);
+	        mir_sdr_rsp1a_BiasT(enable_biastee);
+	        mir_sdr_rspDuo_BiasT(enable_biastee);
+	        // set Notch
+	        mir_sdr_RSPII_RfNotchEnable(enable_broadcastnotch);
+	        mir_sdr_rsp1a_DabNotch(enable_dabnotch);
+	        mir_sdr_rsp1a_BroadcastNotch(enable_broadcastnotch);
+	        mir_sdr_rspDuo_DabNotch(enable_dabnotch);
+	        mir_sdr_rspDuo_BroadcastNotch(enable_broadcastnotch);
+	        mir_sdr_rspDuo_Tuner1AmNotch(enable_broadcastnotch);
+	        // set external reference output
+	        mir_sdr_RSPII_ExternalReferenceControl(enable_refout);
+        	mir_sdr_rspDuo_ExtRef(enable_refout);
 
 		// the rx must be started before accepting commands from the command worker
 		r = pthread_create(&command_thread, &attr, command_worker, NULL);
