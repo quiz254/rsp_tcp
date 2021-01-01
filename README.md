@@ -2,7 +2,7 @@
 
 (c)2018 F4FHH Nicolas (f4fhh@ducor.fr). Licensed under the GNU GPL V3
 
-(c)2020 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
+(c)2021 ON5HB Bas Heijermans, Forked and adjusted for websdr.org
 
 ## An rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR but does NOT support the RSPdx
 ## This driver has been tested and works perfect with the RSP1A and RSP2
