@@ -103,7 +103,7 @@ static volatile int ctrlC_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -34 // original -24 //Bas -34
 #define DEFAULT_GAIN_REDUCTION 34 // original 40 //Bas 34
-#define DEFAULT_LNA 1 // 0 = off and 1 = automatic
+#define DEFAULT_LNA 1 // 0 = off to 9
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -293,8 +293,8 @@ static int set_gain_by_index(unsigned int index)
 	int r;
 
 //	gainReduction = gain_list[index];
-        r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
-// nomal mode r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, mir_sdr_CHANGE_GR);
+//        r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, mir_sdr_CHANGE_GR);
+	r = mir_sdr_Reinit(&gainReduction, 0, 0, 0, 0, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, mir_sdr_CHANGE_GR);
 	if (r != mir_sdr_Success) {
 		printf("set gain reduction error (%d)\n", r);
 	}
@@ -593,7 +593,7 @@ void usage(void)
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 34  / values 20-59)\n"
-		"\t-l Low Noise Amplifier level* (default: 1-auto / values 0-off)\n"
+		"\t-l Low Noise Amplifier level (default: 2 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB bandfilter* (default: enabled)\n"
 		"\t-B MW bandfilter* (default: enabled)\n"
@@ -635,7 +635,7 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:P:A:G:W::TlvDBRE")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:l:P:A:G:W:TvDBRE")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -673,7 +673,7 @@ int main(int argc, char **argv)
                         edgefilter = 1;
                         break;
 		case 'l':
-			rspLNA = 0;
+			rspLNA = atoi(optarg);
 			break;
                 case 'G':
                         agctype = atoi(optarg);
@@ -705,7 +705,7 @@ int main(int argc, char **argv)
 	else { agc_type = mir_sdr_AGC_DISABLE;
 		agctype = 0;}
 
-	if (gainReduction < 20 || gainReduction > 59) gainReduction = 54;
+	if (gainReduction < 20 || gainReduction > 59) gainReduction = 34;
 	if (wideband !=0) wideband = 2;
 
 	// check API version
@@ -829,8 +829,8 @@ int main(int argc, char **argv)
 
 		printf("client accepted!\n");
 		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
-		printf("Low-Noise-Amp mode set %u (0=off 1=on)\n", rspLNA);
-		printf("Gain-Reduction set %d (59=max 20=min)\n", gainReduction);
+		printf("Low-Noise-Amp mode set %u \n", rspLNA);
+		printf("Gain-Reduction set %d \n", gainReduction);
 		printf("Edgefilter set %d (0=off 1=on)\n", edgefilter);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
@@ -853,9 +853,9 @@ int main(int argc, char **argv)
 		pthread_attr_destroy(&attr);
 */
 // initialise API and start the rx
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+//		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 // Changes by PA0SIM =============================
-//		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);
