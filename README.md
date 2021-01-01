@@ -28,7 +28,7 @@ Usage:
 	
 	-r Gain reduction (default: 34 / values 20-59)
 	
-	-l Low Noise Amplifier disable* (default: enabled)
+	-l Low Noise Amplifier disable (default: 1 / values 0-9)
 			
 	-T Bias-T enable* (default: disabled)
 	
@@ -85,6 +85,7 @@ Usage:
  - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
  - Version 1.2.6: Finally found the correct conversion to 8bit :-)
  - Version 1.3.3: Conversion error.
+ - Version 1.3.9: changed to normal RSP_gain/lna tables and corrected several init-errors.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
