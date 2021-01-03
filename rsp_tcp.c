@@ -101,9 +101,9 @@ static volatile int ctrlC_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -34 // original -24 //Bas -34
-#define DEFAULT_GAIN_REDUCTION 34 // original 40 //Bas 34
-#define DEFAULT_LNA 1 // 0 = off to 9
+#define DEFAULT_AGC_SETPOINT -30 // original -24 //Bas -34
+#define DEFAULT_GAIN_REDUCTION 50 // original 40 //Bas 34
+#define DEFAULT_LNA 0 // 0 = off to 9
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -592,17 +592,17 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 34  / values 20-59)\n"
-		"\t-l Low Noise Amplifier level (default: 2 / values 0-9)\n"
+		"\t-r Gain reduction (default: 50  / values 20-59)\n"
+		"\t-l Low Noise Amplifier level (default: 0 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB bandfilter* (default: enabled)\n"
 		"\t-B MW bandfilter* (default: enabled)\n"
-		"\t-R Refclk output enable* (default: disabled)\n"
+		"\t-R Refclk output* (default: disabled)\n"
 		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W wideband enable (default: 2 / values: 0 small / 1 wide / 2 = optimised)\n"
 		"\t-E Edgefilter digital enable* (default: disabled)\n"
-		"\t-A Auto Gain Control Setpoint (default: -34 / values -1 to -69 / other disabled)\n"
+		"\t-A Auto Gain Control Setpoint (default: -30 / values -1 to -69 / other disabled)\n"
 		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n"
@@ -706,7 +706,7 @@ int main(int argc, char **argv)
 		agctype = 0;}
 
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = 34;
-	if (wideband !=0) wideband = 2;
+	if (wideband !=0 || wideband !=1 ) wideband = 2;
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
@@ -828,10 +828,11 @@ int main(int argc, char **argv)
 		setsockopt(s, SOL_SOCKET, SO_LINGER, (char *)&ling, sizeof(ling));
 
 		printf("client accepted!\n");
-		printf("AGC-type set %dHz (0 means disabled)\n", agctype);
-		printf("Low-Noise-Amp mode set %u \n", rspLNA);
-		printf("Gain-Reduction set %d \n", gainReduction);
-		printf("Edgefilter set %d (0=off 1=on)\n", edgefilter);
+                printf("AGC-type set %dHz (0 means disabled)\n", agctype);
+                printf("Low-Noise-Amp mode set %u \n", rspLNA);
+                printf("Gain-Reduction set %d \n", gainReduction);
+                printf("AGC-Gain-Setpoint set %d \n", agcSetPoint);
+                printf("Edgefilter set %d (0=off 1=on)\n", edgefilter);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
@@ -852,9 +853,9 @@ int main(int argc, char **argv)
 		r = pthread_create(&command_thread, &attr, command_worker, NULL);
 		pthread_attr_destroy(&attr);
 */
-// initialise API and start the rx
-//		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
-// Changes by PA0SIM =============================
+		// initialise API and start the rx
+		// r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		// Changes by PA0SIM =============================
 		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
@@ -863,9 +864,9 @@ int main(int argc, char **argv)
 		}
 		fprintf(stderr,"started rx\n");
 
-//Notches and other stuff must be here!!....
+		//Notches and other stuff must be here!!....
 
-	       // enable DC offset and IQ imbalance correction
+		// enable DC offset and IQ imbalance correction
 	        mir_sdr_DCoffsetIQimbalanceControl(1, 1);
 	        // enable AGC with a setPoint of -30dBfs
 	        mir_sdr_AgcControl(agc_type, agcSetPoint, 0, 0, 0, 0, rspLNA);
