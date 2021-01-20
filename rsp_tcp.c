@@ -101,8 +101,8 @@ static volatile int ctrlC_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -30 // original -24 //Bas -34
-#define DEFAULT_GAIN_REDUCTION 50 // original 40 //Bas 34
+#define DEFAULT_AGC_SETPOINT -40 // original -24 //Bas -34
+#define DEFAULT_GAIN_REDUCTION 44 // original 40 //Bas 34
 #define DEFAULT_LNA 0 // 0 = off to 9
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
@@ -130,8 +130,8 @@ static int enable_refout = 0;
 static int deci = 1;
 
 ////AGC beware to change all!
-static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
-static int agctype = 5; // just the number of above
+static int agc_type = mir_sdr_AGC_100HZ; //AGC 5-50-100HZ or DISABLE
+static int agctype = 100; // just the number of above
 
 static void sighandler(int signum)
 {
@@ -170,23 +170,23 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
-				if (*xi < -8191)
-                        		{xi2 = -8192;}
-			        else if (*xi > 8191)
-                        		{xi2 = 8191;}
+				if (*xi < -1536)
+                        		{xi2 = -1536;}
+			        else if (*xi > 1535)
+                        		{xi2 = 1535;}
 			        else {xi2 = *xi;}
-				if (*xq < -8191)
-                                        {xq2 = -8192;}
-                                else if (*xq > 8191)
-                                        {xq2 = 8191;}
+				if (*xq < -1536)
+                                        {xq2 = -1536;}
+                                else if (*xq > 1535)
+                                        {xq2 = 1535;}
                                 else {xq2 = *xq;}
 
-				*(data++) = (unsigned char)((xi2 << 2) >> 8) + 128.5;
-                                *(data++) = (unsigned char)((xq2 << 2) >> 8) + 128.5;
+				*(data++) = (unsigned char)(xi2 / 12) + 128.5;
+                                *(data++) = (unsigned char)(xq2 / 12) + 128.5;
 
 // I/Q value reader - if enabled show values
-//if (*xi > 6000 || *xi < -6000 || *xq > 6000 || *xq < -6000) {
-//printf("xi=%hd,xq=%hd\n",(*xi >> 7),(*xq >> 7));}
+//if (*xi > 1500 || *xi < -1500 || *xq > 1500 || *xq < -1500) {
+//printf("xi=%hd,xq=%hd\n",(*xi),(*xq));}
 
                         rpt->len = 2 * numSamples;
                 }
@@ -417,6 +417,7 @@ static int set_sample_rate(uint32_t sr)
 	}
 	else
 	{
+		deci =1;
 		if (sr >= 8000000 && sr <= 10000000)
 		{
 			bwType = mir_sdr_BW_8_000;
@@ -439,7 +440,6 @@ static int set_sample_rate(uint32_t sr)
 		else
 		if (sr >= 2500000 && sr < 5000000)
 		{
-			// deci = 2;
 			if (wideband >= 1 && sr >= 2880000) bwType = mir_sdr_BW_5_000;
 			else bwType = mir_sdr_BW_1_536;
 		}
@@ -592,7 +592,7 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 50  / values 20-59)\n"
+		"\t-r Gain reduction (default: 44  / values 20-59)\n"
 		"\t-l Low Noise Amplifier level (default: 0 / values 0-9)\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-D DAB bandfilter* (default: enabled)\n"
@@ -602,8 +602,8 @@ void usage(void)
 		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
 		"\t-W wideband enable (default: 2 / values: 0 small / 1 wide / 2 = optimised)\n"
 		"\t-E Edgefilter digital enable* (default: disabled)\n"
-		"\t-A Auto Gain Control Setpoint (default: -30 / values -1 to -69 / other disabled)\n"
-		"\t-G Auto Gain Control Loop-speed in Hz (default: 5 / values 0/5/50/100)\n"
+		"\t-A Auto Gain Control setpoint (default: -40 / values -1 to -69 / other disabled)\n"
+		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n"
 		"\n\t* marked options are switches they toggle on/off\n\n" );
@@ -705,7 +705,7 @@ int main(int argc, char **argv)
 	else { agc_type = mir_sdr_AGC_DISABLE;
 		agctype = 0;}
 
-	if (gainReduction < 20 || gainReduction > 59) gainReduction = 34;
+	if (gainReduction < 20 || gainReduction > 59) gainReduction = DEFAULT_GAIN_REDUCTION;
 	if (wideband !=0 || wideband !=1 ) wideband = 2;
 
 	// check API version
