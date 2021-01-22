@@ -170,19 +170,16 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
-				if (*xi < -1536)
-                        		{xi2 = -1536;}
-			        else if (*xi > 1535)
-                        		{xi2 = 1535;}
-			        else {xi2 = *xi;}
-				if (*xq < -1536)
-                                        {xq2 = -1536;}
-                                else if (*xq > 1535)
-                                        {xq2 = 1535;}
-                                else {xq2 = *xq;}
+				xi2 = *xi + 1536;
+				xq2 = *xq + 1536;
 
-				*(data++) = (unsigned char)(xi2 / 12) + 128.5;
-                                *(data++) = (unsigned char)(xq2 / 12) + 128.5;
+				if (*xi < -1536 || *xi > 1535 || *xq < -1536 || *xq > 1535) {
+					xi2 = 0;
+					xq2 = 0;
+				}
+
+				*(data++) = (unsigned char)(xi2 / 12);
+                                *(data++) = (unsigned char)(xq2 / 12);
 
 // I/Q value reader - if enabled show values
 //if (*xi > 1500 || *xi < -1500 || *xq > 1500 || *xq < -1500) {
@@ -706,7 +703,7 @@ int main(int argc, char **argv)
 		agctype = 0;}
 
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = DEFAULT_GAIN_REDUCTION;
-	if (wideband !=0 || wideband !=1 ) wideband = 2;
+	if (wideband < 0 || wideband > 2 ) wideband = 2;
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
