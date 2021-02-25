@@ -103,7 +103,7 @@ static volatile int ctrlC_exit = 0;
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -40 // original -24 //Bas -34
 #define DEFAULT_GAIN_REDUCTION 44 // original 40 //Bas 34
-#define DEFAULT_LNA 0 // 0 = off to 9
+#define DEFAULT_LNA 0 // 0 = off to 9 - Attenuator!
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
 
@@ -589,21 +589,25 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 44  / values 20-59)\n"
-		"\t-l Low Noise Amplifier level (default: 0 / values 0-9)\n"
+		"\t-r Gain reduction (default: 44  / values 20-59) - Not set in websdr.cfg see tips\n"
+		"\t-l LNA attenuator level about -6dB each step (default: 0 / values 0-9) - See tips below\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
-		"\t-D DAB bandfilter* (default: enabled)\n"
-		"\t-B MW bandfilter* (default: enabled)\n"
-		"\t-R Refclk output* (default: disabled)\n"
-		"\t-f frequency to tune to [Hz] - If freq set centerfreq and progfreq is ignored!!\n"
-		"\t-s samplerate in [Hz] - If sample rate is set it will be ignored from client!!\n"
-		"\t-W wideband enable (default: 2 / values: 0 small / 1 wide / 2 = optimised)\n"
-		"\t-E Edgefilter digital enable* (default: disabled)\n"
+		"\t-f Frequency to tune center in Hertz (default: 1000000 = 1MHz) - If freq set centerfreq and progfreq are ignored! - Normally set in websdr.cfg\n"
+		"\t-s Samplerate in samples-per-second (default: 2048000) - If sample rate is set it will be ignored from client! - Normally set in websdr.cfg\n\n"
+		"\t-W Wideband-pass-filter mode (default: 2 / values: 0 small / 1 wide / 2 = optimised)\n"
+		"\t-D DAB band-reject-filter* (default: enabled)\n"
+                "\t-B MW band-reject-filter* (default: enabled)\n"
+                "\t-R Refclk output* (default: disabled)\n"
+		"\t-E Edge-steep-filter enable* (default: disabled) - Beware CPU load could go high!\n\n"
 		"\t-A Auto Gain Control setpoint (default: -40 / values -1 to -69 / other disabled)\n"
-		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100)\n"
+		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
-		"\t-v Verbose output (debug) enable* (default: disabled)\n"
-		"\n\t* marked options are switches they toggle on/off\n\n" );
+		"\t-v Verbose output (debug) enable* (default: disabled)\n\n"
+		"\t* Marked options are switches they toggle on/off\n"
+		"\t Tip1 - start with -l 0 level correction first, if too much signal try -l 1, -l 2 etc, most simple way start receiving correctly\n"
+		"\t Tip2 - websdr.cfg gain setting is cosmetic only, it does not impact the receivers performance!\n"
+		"\t Tip3 - if you have ghost-signals, set wideband-pass to small as it's probably too wide, mostly happens on HF!\n\n"
+		 );
 	exit(1);
 }
 
@@ -704,6 +708,13 @@ int main(int argc, char **argv)
 
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = DEFAULT_GAIN_REDUCTION;
 	if (wideband < 0 || wideband > 2 ) wideband = 2;
+
+	printf("\nrsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org "
+        	#ifdef SERVER_VERSION
+                        "VERSION "SERVER_VERSION
+                #endif
+                );
+                printf("\nuse --help for options and explenation\n\n");
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
