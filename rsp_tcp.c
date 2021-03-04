@@ -170,13 +170,22 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         data = (unsigned char*)rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
-				xi2 = *xi + 1536;
-				xq2 = *xq + 1536;
+				if (*xi < -1536 ) {
+                                        xi2 = -1536;
+                                }
+                                else if (*xi < 1535 ) {
+                                        xi2 = 1535;
+                                }
 
-				if (*xi < -1536 || *xi > 1535 || *xq < -1536 || *xq > 1535) {
-					xi2 = 0;
-					xq2 = 0;
-				}
+                                if (*xq < -1536 ) {
+                                        xq2 = -1536;
+                                }
+                                else if (*xq < 1535 ) {
+                                        xq2 = 1535;
+                                }
+
+                                xi2 = *xi + 1536;
+                                xq2 = *xq + 1536;
 
 				*(data++) = (unsigned char)(xi2 / 12);
                                 *(data++) = (unsigned char)(xq2 / 12);
