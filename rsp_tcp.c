@@ -171,25 +171,25 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
-				xi2 = *xi + 1536;
-                                xq2 = *xq + 1536;
+				xi2 = *xi + 2048;
+                                xq2 = *xq + 2048;
 
-				if (*xi < -1536 ) {
-                                        xi2 = -1536;
+				if (*xi < -2048 ) {
+                                        xi2 = -2048;
                                 }
-                                else if (*xi > 1535 ) {
-                                        xi2 = 1535;
-                                }
-
-                                if (*xq < -1536 ) {
-                                        xq2 = -1536;
-                                }
-                                else if (*xq > 1535 ) {
-                                        xq2 = 1535;
+                                else if (*xi > 2048 ) {
+                                        xi2 = 2048;
                                 }
 
-				*(data++) = (unsigned char)(xi2 / 12);
-                                *(data++) = (unsigned char)(xq2 / 12);
+                                if (*xq < -2048 ) {
+                                        xq2 = -2048;
+                                }
+                                else if (*xq > 2048 ) {
+                                        xq2 = 2048;
+                                }
+
+				*(data++) = (unsigned char)(xi2 / 16);
+                                *(data++) = (unsigned char)(xq2 / 16);
 
 // I/Q value reader - if enabled show values
 //if (*xi > 1500 || *xi < -1500 || *xq > 1500 || *xq < -1500) {
