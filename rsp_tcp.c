@@ -173,14 +173,14 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 				if (*xi < -1536 ) {
                                         xi2 = -1536;
                                 }
-                                else if (*xi < 1535 ) {
+                                else if (*xi > 1535 ) {
                                         xi2 = 1535;
                                 }
 
                                 if (*xq < -1536 ) {
                                         xq2 = -1536;
                                 }
-                                else if (*xq < 1535 ) {
+                                else if (*xq > 1535 ) {
                                         xq2 = 1535;
                                 }
 
