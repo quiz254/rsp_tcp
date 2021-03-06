@@ -101,7 +101,7 @@ static volatile int ctrlC_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -40 // original -24 //Bas -34
+#define DEFAULT_AGC_SETPOINT -43 // original -24 //Bas -34
 #define DEFAULT_GAIN_REDUCTION 44 // original 40 //Bas 34
 #define DEFAULT_LNA 0 // 0 = off to 9 - Attenuator!
 #define RTLSDR_TUNER_R820T 5
@@ -130,8 +130,8 @@ static int enable_refout = 0;
 static int deci = 1;
 
 ////AGC beware to change all!
-static int agc_type = mir_sdr_AGC_100HZ; //AGC 5-50-100HZ or DISABLE
-static int agctype = 100; // just the number of above
+static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
+static int agctype = 5; // just the number of above
 
 static void sighandler(int signum)
 {
@@ -609,8 +609,8 @@ void usage(void)
                 "\t-B MW band-reject-filter* (default: enabled)\n"
                 "\t-R Refclk output* (default: disabled)\n"
 		"\t-E Edge-steep-filter enable* (default: disabled) - Beware CPU load could go high!\n\n"
-		"\t-A Auto Gain Control setpoint (default: -40 / values -1 to -69 / other disabled)\n"
-		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
+		"\t-A Auto Gain Control setpoint (default: -43 / values -1 to -69 / other disabled)\n"
+		"\t-G Auto Gain Control speed in Hz (default: 5 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n\n"
 		"\t* Marked options are switches they toggle on/off\n"
