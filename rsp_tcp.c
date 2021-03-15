@@ -101,8 +101,8 @@ static volatile int ctrlC_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -43 // original -24 //Bas -34
-#define DEFAULT_GAIN_REDUCTION 44 // original 40 //Bas 34
+#define DEFAULT_AGC_SETPOINT -30 // original -24 //Bas -34
+#define DEFAULT_GAIN_REDUCTION 40 // original 40 //Bas 34
 #define DEFAULT_LNA 0 // 0 = off to 9 - Attenuator!
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
@@ -130,8 +130,8 @@ static int enable_refout = 0;
 static int deci = 1;
 
 ////AGC beware to change all!
-static int agc_type = mir_sdr_AGC_5HZ; //AGC 5-50-100HZ or DISABLE
-static int agctype = 5; // just the number of above
+static int agc_type = mir_sdr_AGC_100HZ; //AGC 5-50-100HZ or DISABLE
+static int agctype = 100; // just the number of above
 
 static void sighandler(int signum)
 {
@@ -171,30 +171,31 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
-				xi2 = *xi + 2048;
-                                xq2 = *xq + 2048;
+				xi2 = *xi;
+                                xq2 = *xq;
 
-				if (*xi < -2048 ) {
-                                        xi2 = -2048;
+				if (*xi < -8192 ) {
+                                        xi2 = -8192;
                                 }
-                                else if (*xi > 2048 ) {
-                                        xi2 = 2048;
-                                }
-
-                                if (*xq < -2048 ) {
-                                        xq2 = -2048;
-                                }
-                                else if (*xq > 2048 ) {
-                                        xq2 = 2048;
+                                else if (*xi > 8191 ) {
+                                        xi2 = 8191;
                                 }
 
-				*(data++) = (unsigned char)(xi2 / 16);
-                                *(data++) = (unsigned char)(xq2 / 16);
+                                if (*xq < -8192 ) {
+                                        xq2 = -8192;
+                                }
+                                else if (*xq > 8191 ) {
+                                        xq2 = 8191;
+                                }
 
-// I/Q value reader - if enabled show values
-//if (*xi > 1500 || *xi < -1500 || *xq > 1500 || *xq < -1500) {
-//printf("xi=%hd,xq=%hd\n",(*xi),(*xq));}
+				*(data++) = (unsigned char)((xi2 / 64) +128.5);
+                                *(data++) = (unsigned char)((xq2 / 64) +128.5);
 
+					if (verbose) {
+						// I/Q value reader - if enabled show values
+						if (*xi > 8192 || *xi < -8192 || *xq > 8192 || *xq < -8192) {
+						printf("xi=%hd,xi2=%hd,xq=%hd,xq2=%hd\n",*xi,xi2,*xq,xq2);}
+					};
                         rpt->len = 2 * numSamples;
                 }
 
@@ -599,7 +600,7 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 44  / values 20-59) - Not set in websdr.cfg see tips\n"
+		"\t-r Gain reduction (default: 40  / values 20-59) - Not set in websdr.cfg see tips\n"
 		"\t-l LNA attenuator level about -6dB each step (default: 0 / values 0-9) - See tips below\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-f Frequency to tune center in Hertz (default: 1000000 = 1MHz) - If freq set centerfreq and progfreq are ignored! - Normally set in websdr.cfg\n"
@@ -609,8 +610,8 @@ void usage(void)
                 "\t-B MW band-reject-filter* (default: enabled)\n"
                 "\t-R Refclk output* (default: disabled)\n"
 		"\t-E Edge-steep-filter enable* (default: disabled) - Beware CPU load could go high!\n\n"
-		"\t-A Auto Gain Control setpoint (default: -43 / values -1 to -69 / other disabled)\n"
-		"\t-G Auto Gain Control speed in Hz (default: 5 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
+		"\t-A Auto Gain Control setpoint (default: -30 / values -1 to -69 / other disabled)\n"
+		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n\n"
 		"\t* Marked options are switches they toggle on/off\n"
