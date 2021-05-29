@@ -101,7 +101,7 @@ static volatile int ctrlC_exit = 0;
 #define MAX_DEVS 8
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
-#define DEFAULT_AGC_SETPOINT -30 // original -24 //Bas -34
+#define DEFAULT_AGC_SETPOINT -40 // original -24 //Bas -40
 #define DEFAULT_GAIN_REDUCTION 40 // original 40 //Bas 34
 #define DEFAULT_LNA 0 // 0 = off to 9 - Attenuator!
 #define RTLSDR_TUNER_R820T 5
@@ -160,8 +160,7 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-	short xi2=0;
-	short xq2=0;
+
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		rpt->data = (char*)malloc(2 * numSamples);
@@ -171,31 +170,17 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
-				xi2 = *xi;
-                                xq2 = *xq;
+			//restore the unsigned 16-Bit samples
+			int tmpi = (*xi << 2) + 32768;
+			int tmpq = (*xq << 2) + 32768;
 
-				if (*xi < -8192 ) {
-                                        xi2 = -8192;
-                                }
-                                else if (*xi > 8191 ) {
-                                        xi2 = 8191;
-                                }
+			// cut eight bits
+			tmpi >>= 8;
+			tmpq >>= 8;
 
-                                if (*xq < -8192 ) {
-                                        xq2 = -8192;
-                                }
-                                else if (*xq > 8191 ) {
-                                        xq2 = 8191;
-                                }
+			*(data++) = (unsigned char)(tmpi);
+                        *(data++) = (unsigned char)(tmpq);
 
-				*(data++) = (unsigned char)((xi2 / 64) +128.5);
-                                *(data++) = (unsigned char)((xq2 / 64) +128.5);
-
-					if (verbose) {
-						// I/Q value reader - if enabled show values
-						if (*xi > 8192 || *xi < -8192 || *xq > 8192 || *xq < -8192) {
-						printf("xi=%hd,xi2=%hd,xq=%hd,xq2=%hd\n",*xi,xi2,*xq,xq2);}
-					};
                         rpt->len = 2 * numSamples;
                 }
 
@@ -610,7 +595,7 @@ void usage(void)
                 "\t-B MW band-reject-filter* (default: enabled)\n"
                 "\t-R Refclk output* (default: disabled)\n"
 		"\t-E Edge-steep-filter enable* (default: disabled) - Beware CPU load could go high!\n\n"
-		"\t-A Auto Gain Control setpoint (default: -30 / values -1 to -69 / other disabled)\n"
+		"\t-A Auto Gain Control setpoint (default: -40 / values -1 to -69 / other disabled)\n"
 		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n\n"
