@@ -160,8 +160,6 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-	short xi2=0;
-	short xq2=0;
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		rpt->data = (char*)malloc(2 * numSamples);
@@ -171,35 +169,9 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
 
-/*				Different version of quantize
-
-				//restore the unsigned 16-Bit signal
-				int tmpi = (*xi << 2) + 32768;
-				int tmpq = (*xq << 2) + 32768;
-
-				// cut the four eight order bits
-				tmpi >>= 8;
-				tmpq >>= 8;
-
-				*(data++) = (unsigned char)(tmpi);
-	                        *(data++) = (unsigned char)(tmpq);
-*/
-
-/*				Another version
-
-				*(data++) = (unsigned char)((((*xi << 2 ) + 0x80) >> 8) + 128);
-				*(data++) = (unsigned char)((((*xq << 2 ) + 0x80) >> 8) + 128);
-
-*/
-
 			*(data++) = (unsigned char)(((*xi << 2 ) + 0x8080) >> 8);
 			*(data++) = (unsigned char)(((*xq << 2 ) + 0x8080) >> 8);
 
-					if (verbose) {
-						// I/Q value reader - if enabled show values
-						if (*xi > 8192 || *xi < -8192 || *xq > 8192 || *xq < -8192) {
-						printf("xi=%hd,xi2=%hd,xq=%hd,xq2=%hd\n",*xi,xi2,*xq,xq2);}
-					};
                         rpt->len = 2 * numSamples;
                 }
 
