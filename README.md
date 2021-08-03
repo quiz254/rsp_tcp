@@ -72,7 +72,7 @@ Usage:
 ```
 ## NOTES
  - a RSP API version 2.13 (no other tested!) must be installed on the linux server, see [sdrplay linux downloads](https://www.sdrplay.com/downloads/)
- - It does compile and run on Raspbian (Raspberry Pi2 tested but isn't fast enough)
+ - It does compile and run on Raspbian but only 32bit Linux (Raspberry Pi4 tested and it's fast enough)
  - It should compile on windows as the initial code from rtl_tcp does
  - The goal of this software is ONLY to work well with websdr.org, no other websdr servers or RTL-compatible software but it may work.
 
