@@ -86,6 +86,7 @@ Usage:
  - Version 1.2.6: Finally found the correct conversion to 8bit :-)
  - Version 1.3.3: Conversion error.
  - Version 1.3.9: changed to normal RSP_gain/lna tables and corrected several init-errors.
+ - Version 1.6.2: Found RSP1 and RSP2 are 12bit and not 14bit like newer models.
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
