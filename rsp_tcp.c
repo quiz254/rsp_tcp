@@ -194,8 +194,8 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
 
 			if (devModel == 1 || devModel == 2) {
 				// RSP1 and RSP2 are only 12bit
-				*(data++) = (unsigned char)(((*xi << 4 ) + 0x8080) >> 8);
-                        	*(data++) = (unsigned char)(((*xq << 4 ) + 0x8080) >> 8);
+				*(data++) = (unsigned char)(((*xi << 3 ) + 0x8080) >> 8);
+                        	*(data++) = (unsigned char)(((*xq << 3 ) + 0x8080) >> 8);
 			}
 				// Other models are 14bit
 			else {
