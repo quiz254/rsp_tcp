@@ -87,6 +87,7 @@ Usage:
  - Version 1.3.3: Conversion error.
  - Version 1.3.9: changed to normal RSP_gain/lna tables and corrected several init-errors.
  - Version 1.6.2: Found RSP1 and RSP2 are 12bit and not 14bit like newer models.
+ - Version 1.6.8: Made changes so it works with OpenWebrx RTL-TCP upto 8~10MHz wide
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
