@@ -283,7 +283,7 @@ static void *tcp_worker(void *arg)
 			while(bytesleft > 0) {
 				FD_ZERO(&writefds);
 				FD_SET(s, &writefds);
-				tv.tv_sec = 1;
+				tv.tv_sec = 2; //was 1
 				tv.tv_usec = 0;
 				r = select(s+1, NULL, &writefds, NULL, &tv);
 				if(r) {
@@ -515,8 +515,8 @@ static void *command_worker(void *arg)
 		while(left >0) {
 			FD_ZERO(&readfds);
 			FD_SET(s, &readfds);
-			tv.tv_sec = 0; //bas was 1
-			tv.tv_usec = 1000; //was 0
+			tv.tv_sec = 2; //bas was 1
+			tv.tv_usec = 0;
 			r = select(s+1, &readfds, NULL, NULL, &tv);
 			if(r) {
 				received = recv(s, (char*)&cmd+(sizeof(cmd)-left), left, 0);
@@ -848,7 +848,7 @@ int main(int argc, char **argv)
 		while(1) {
 			FD_ZERO(&readfds);
 			FD_SET(listensocket, &readfds);
-			tv.tv_sec = 1;
+			tv.tv_sec = 2; //was 1
 			tv.tv_usec = 0;
 			r = select(listensocket+1, &readfds, NULL, NULL, &tv);
 			if(do_exit) {
