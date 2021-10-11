@@ -91,7 +91,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 512;
+static int llbuf_num = 2048;
 static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
@@ -128,6 +128,7 @@ static int enable_dabnotch = 1;
 static int enable_broadcastnotch = 1;
 static int enable_refout = 0;
 static int deci = 1;
+uint32_t sample_rate = 2048000;
 
 ////AGC beware to change all!
 static int agc_type = mir_sdr_AGC_100HZ; //AGC 5-50-100HZ or DISABLE
@@ -198,6 +199,7 @@ void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChange
                         	*(data++) = (unsigned char)(((*xq << 3 ) + 0x8080) >> 8);
 			}
 				// Other models are 14bit
+
 			else {
 				*(data++) = (unsigned char)(((*xi << 2 ) + 0x8080) >> 8);
 				*(data++) = (unsigned char)(((*xq << 2 ) + 0x8080) >> 8);
@@ -305,7 +307,7 @@ static void *tcp_worker(void *arg)
 
 // gain reduction list in back order to emulate R820T gain
 //--bas--
-// const int gain_list[] = { 78, 75, 72, 69, 66, 63, 60, 57, 54, 51, 48, 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0 };
+//const int gain_list[] = { 78, 75, 72, 69, 66, 63, 60, 57, 54, 51, 48, 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0 };
 const int gain_list[] = { 40 };
 
 static int set_gain_by_index(unsigned int index)
@@ -445,17 +447,20 @@ static int set_sample_rate(uint32_t sr)
 		else
 		if (sr >= 7000000 && sr < 8000000)
 		{
-			bwType = mir_sdr_BW_7_000;
+			if (wideband == 1) bwType = mir_sdr_BW_8_000;
+			else bwType = mir_sdr_BW_7_000;
 		}
 		else
 		if (sr >= 6000000 && sr < 7000000)
 		{
-			bwType = mir_sdr_BW_6_000;
+			if (wideband == 1) bwType = mir_sdr_BW_7_000;
+			else bwType = mir_sdr_BW_6_000;
 		}
 		else
 		if (sr >= 5000000 && sr < 6000000)
 		{
-			bwType = mir_sdr_BW_5_000;
+			if (wideband == 1) bwType = mir_sdr_BW_6_000;
+			else bwType = mir_sdr_BW_5_000;
 		}
 		else
 		if (sr >= 2500000 && sr < 5000000)
@@ -510,8 +515,8 @@ static void *command_worker(void *arg)
 		while(left >0) {
 			FD_ZERO(&readfds);
 			FD_SET(s, &readfds);
-			tv.tv_sec = 1;
-			tv.tv_usec = 0;
+			tv.tv_sec = 0; //bas was 1
+			tv.tv_usec = 1000; //was 0
 			r = select(s+1, &readfds, NULL, NULL, &tv);
 			if(r) {
 				received = recv(s, (char*)&cmd+(sizeof(cmd)-left), left, 0);
@@ -640,7 +645,6 @@ int main(int argc, char **argv)
 	char* addr = "127.0.0.1";
 	int port = 1234;
 	uint32_t frequency = 1000000;
-	uint32_t samp_rate = 2048000;
 	struct sockaddr_in local, remote;
 	struct llist *curelem,*prev;
 	pthread_attr_t attr;
@@ -675,7 +679,7 @@ int main(int argc, char **argv)
 			ignore_f_command = 1;
 			break;
 		case 's':
-			samp_rate = (uint32_t)atofs(optarg);
+			sample_rate = (uint32_t)atofs(optarg);
 			ignore_s_command = 1;
 			break;
 		case 'A':
@@ -885,9 +889,9 @@ int main(int argc, char **argv)
 		pthread_attr_destroy(&attr);
 */
 		// initialise API and start the rx
-		// r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		// r = mir_sdr_StreamInit(&gainReduction, (sample_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_SET_GR_ALT_MODE, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		// Changes by PA0SIM =============================
-		r = mir_sdr_StreamInit(&gainReduction, (samp_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
+		r = mir_sdr_StreamInit(&gainReduction, (sample_rate/1e6), (frequency/1e6), bwType, 0, rspLNA, &infoOverallGr, mir_sdr_USE_RSP_SET_GR, &samples_per_packet, rx_callback, gc_callback, (void *)NULL);
 		if (r != mir_sdr_Success)
 		{
 			printf("failed to start the RSP device, return (%d)\n", r);
