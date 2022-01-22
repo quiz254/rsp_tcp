@@ -82,7 +82,7 @@ Usage:
 ## HISTORY (later versions are forked by Bas ON5HB from original of F4FHH)
  - Version 0.1.0: Initial build
  - Version 0.1.4: Added extra options Bas.
- - Version 0.4.5: Added more samplerates that work 64/96/128/192/384/512/768/1024/1536/2048/2880K
+ - Version 0.4.5: Added more samplerates that work 64/96/128/192/256/384/512/768/1024/1536/2048/2880K
  - Version 1.2.6: Finally found the correct conversion to 8bit :-)
  - Version 1.3.3: Conversion error.
  - Version 1.3.9: changed to normal RSP_gain/lna tables and corrected several init-errors.
