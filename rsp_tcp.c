@@ -102,7 +102,7 @@ static volatile int ctrlC_exit = 0;
 #define WORKER_TIMEOUT_SEC 3
 #define DEFAULT_BW_T mir_sdr_BW_1_536
 #define DEFAULT_AGC_SETPOINT -30 // original -24 //Bas -34
-#define DEFAULT_GAIN_REDUCTION 40 // original 40 //Bas 34
+#define DEFAULT_GAIN_REDUCTION 34 // original 40 //Bas 34
 #define DEFAULT_LNA 0 // 0 = off to 9 - Attenuator!
 #define RTLSDR_TUNER_R820T 5
 #define MAX_DECIMATION_FACTOR 32
@@ -118,6 +118,7 @@ static int last_gain_idx = 0;
 static int verbose = 0;
 static int wideband = 2; // wideband 0=small / 1=wide / 2=optimised for samplerate
 static int edgefilter = 0;
+static int noiseshape = 1; //Noiseshape 0=off / 1=on
 
 ////waardes
 static int devAvail = 0;
@@ -161,55 +162,58 @@ void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
 void rx_callback(short *xi, short *xq, unsigned int firstSampleNum, int grChanged, int rfChanged, int fsChanged, unsigned int numSamples, unsigned int reset, unsigned int hwRemoved, void* cbContext)
 {
         unsigned int i;
-	short xi2=0;
-	short xq2=0;
         if(!do_exit) {
                 struct llist *rpt = (struct llist*)malloc(sizeof(struct llist));
 		rpt->data = (char*)malloc(2 * numSamples);
 			// assemble the data
-                        unsigned char *data;
-                        data = (unsigned char*)rpt->data;
+
+						short xqi = 0;
+                                                short xqq = 0;
+                                                short errori = 0;
+                                                short errorq = 0;
+                                                short errorIa[5] = {0,0,0,0,0};
+                                                short errorQa[5] = {0,0,0,0,0};
+                                                // short H[4] = {-0.75-0.125/2, 0.75, -0.5, 0.25 -0.125/2};  // filter response
+                                                short error_corrI = 0;
+                                                short error_corrQ = 0;
+
+                        char *data;
+                        data = (char*)rpt->data;
 
 			for (i = 0; i < numSamples; i++, xi++, xq++) {
+				if (noiseshape == 0) {
+                                	xqi = (((*xi ) << 2) >> 8);
+                                	xqq = (((*xq ) << 2) >> 8);
+                          	}
+				else {
+					error_corrI = -((errorIa[0]>>1)+(errorIa[0]>>2)+(errorIa[0]>>4));
+                                	error_corrQ = -((errorQa[0]>>1)+(errorQa[0]>>2)+(errorQa[0]>>4));
+                                	error_corrI += ((errorIa[1]>>1)+(errorIa[1]>>2));
+	                                error_corrQ += ((errorQa[1]>>1)+(errorQa[1]>>2));
+                                	error_corrI -= (errorIa[2]>>1);
+                        	        error_corrQ -= (errorQa[2]>>1);
+                	                error_corrI += (errorIa[3]>>2);
+        	                        error_corrQ += (errorQa[3]>>2);
+	                                error_corrI -= (errorIa[4]>>4);
+                        	        error_corrQ -= (errorQa[4]>>4);
+                	                xqi = (((*xi + error_corrI) << 2) >> 8);
+        	                        xqq = (((*xq + error_corrQ) << 2) >> 8);
+	                                errori = (xqi << 6) - *xi; // 6 ipv. 8 ivm. sample_shift=2
+                                	errorq = (xqq << 6) - *xq;
+                        	        errorIa[4]=errorIa[3];
+                	                errorIa[3]=errorIa[2];
+        	                        errorIa[2]=errorIa[1];
+	                                errorIa[1]=errorIa[0];
+                                	errorIa[0]=errori-error_corrI;
+                        	        errorQa[4]=errorQa[3];
+                	                errorQa[3]=errorQa[2];
+        	                        errorQa[2]=errorQa[1];
+	                                errorQa[1]=errorQa[0];
+                                	errorQa[0]=errorq-error_corrQ;
+				}
+                        *(data++) = (unsigned char)(xqi + 128);
+                        *(data++) = (unsigned char)(xqq + 128);
 
-/*				Different version of quantize
-
-				//restore the unsigned 16-Bit signal
-				int tmpi = (*xi << 2) + 32768;
-				int tmpq = (*xq << 2) + 32768;
-
-				// cut the four eight order bits
-				tmpi >>= 8;
-				tmpq >>= 8;
-
-				*(data++) = (unsigned char)(tmpi);
-	                        *(data++) = (unsigned char)(tmpq);
-*/
-
-/*				Another version
-
-				*(data++) = (unsigned char)((((*xi << 2 ) + 0x80) >> 8) + 128);
-				*(data++) = (unsigned char)((((*xq << 2 ) + 0x80) >> 8) + 128);
-
-*/
-
-			if (devModel == 1 || devModel == 2) {
-				// RSP1 and RSP2 are only 12bit
-				*(data++) = (unsigned char)(((*xi << 3 ) + 0x8080) >> 8);
-                        	*(data++) = (unsigned char)(((*xq << 3 ) + 0x8080) >> 8);
-			}
-				// Other models are 14bit
-
-			else {
-				*(data++) = (unsigned char)(((*xi << 2 ) + 0x8080) >> 8);
-				*(data++) = (unsigned char)(((*xq << 2 ) + 0x8080) >> 8);
-			}
-
-					if (verbose) {
-						// I/Q value reader - if enabled show values
-						if (*xi > 8192 || *xi < -8192 || *xq > 8192 || *xq < -8192) {
-						printf("xi=%hd,xi2=%hd,xq=%hd,xq2=%hd\n",*xi,xi2,*xq,xq2);}
-					};
                         rpt->len = 2 * numSamples;
                 }
 
@@ -608,7 +612,7 @@ static void *command_worker(void *arg)
 
 void usage(void)
 {
-	printf("rsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org "
+	printf("rsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org - NoiseShaping by Jan PA0SIM - "
 #ifdef SERVER_VERSION
 		"VERSION "SERVER_VERSION
 #endif
@@ -617,7 +621,7 @@ void usage(void)
 		"\t-p Listen port (default: 1234)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
-		"\t-r Gain reduction (default: 40  / values 20-59) - Not set in websdr.cfg see tips\n"
+		"\t-r Gain reduction (default: 34  / values 20-59) - Not set in websdr.cfg see tips\n"
 		"\t-l LNA attenuator level about -6dB each step (default: 0 / values 0-9) - See tips below\n"
 		"\t-T Bias-T enable* (default: disabled)\n"
 		"\t-f Frequency to tune center in Hertz (default: 1000000 = 1MHz) - If freq set centerfreq and progfreq are ignored! - Normally set in websdr.cfg\n"
@@ -629,6 +633,7 @@ void usage(void)
 		"\t-E Edge-steep-filter enable* (default: disabled) - Beware CPU load could go high!\n\n"
 		"\t-A Auto Gain Control setpoint (default: -30 / values -1 to -69 / other disabled)\n"
 		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
+		"\t-N NoiseShaping* disable (default: enabled)\n"
 		"\t-n Max number of linked list buffers to keep (default: 512)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n\n"
 		"\t* Marked options are switches they toggle on/off\n"
@@ -663,7 +668,7 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:l:P:q:A:G:W:TvDBRE")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:l:P:q:A:G:W:NTvDBRE")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
@@ -700,6 +705,10 @@ int main(int argc, char **argv)
 		case 'E':
                         edgefilter = 1;
                         break;
+		case 'N':
+                        noiseshape = 0;
+                        break;
+
 		case 'l':
 			rspLNA = atoi(optarg);
 			break;
@@ -736,7 +745,7 @@ int main(int argc, char **argv)
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = DEFAULT_GAIN_REDUCTION;
 	if (wideband < 0 || wideband > 2 ) wideband = 2;
 
-	printf("\nrsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org "
+	printf("\nrsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org - NoiseShaping by Jan PA0SIM - "
         	#ifdef SERVER_VERSION
                         "VERSION "SERVER_VERSION
                 #endif
@@ -868,6 +877,7 @@ int main(int argc, char **argv)
                 printf("Gain-Reduction set %d \n", gainReduction);
                 printf("AGC-Gain-Setpoint set %d \n", agcSetPoint);
                 printf("Edgefilter set %d (0=off 1=on)\n", edgefilter);
+		printf("Noiseshaping set %d (0=off 1=on)\n", noiseshape);
 
 		memset(&dongle_info, 0, sizeof(dongle_info));
 		memcpy(&dongle_info.magic, "RTL0", 4);
