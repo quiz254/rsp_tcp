@@ -48,6 +48,8 @@ Usage:
 	
 	-G Auto Gain Control Loop-bandwidth in Hz (default: 5 / values 0/5/50/100)
 	
+	-N Noise Shaping enabled / disabled, thanks to Jan PA0SIM
+	
 	-n max number of linked list buffers to keep (default: 512)
 	
 	-o Use decimate can give high CPU load (default: minimal-programmed / values 2/4/8/16/32 / 1 = auto-best)
@@ -88,6 +90,7 @@ Usage:
  - Version 1.3.9: changed to normal RSP_gain/lna tables and corrected several init-errors.
  - Version 1.6.2: Found RSP1 and RSP2 are 12bit and not 14bit like newer models.
  - Version 1.6.8: Made changes so it works with OpenWebrx RTL-TCP upto 8~10MHz wide
+ - Version 1.8.0: Noise Shaping, makes it almost 9bit in depth, increasing dynamic range but pass band is smaller. E.g. 1MSPS will give 600KSPS usable, the rest is deaf and filled with noise. At 2MSPS it will give 1.6MSPS, but that is fine, it never did better before anyway :-)
  
 ## CREDITS
  - [Open Source Mobile Communications (OSMOCOM)](https://github.com/osmocom/rtl-sdr.git) team for the original rtl_tcp code
@@ -95,3 +98,4 @@ Usage:
  - [Tony Hoyle](https://github.com/TonyHoyle/sdrplay.git) for the initial idea
  - [Pothosware](https://github.com/pothosware) for the cmake build examples
  - [Nicolas F4FHH](https://github.com/f4hh) for creating the original code to work with rtl_tcp compatible software
+ - [Jan PA0SIM] for his help in making the driver better and better.
