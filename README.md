@@ -65,6 +65,7 @@ Usage:
 
 ## BUILDING
 ```
+  apt install build-essential (debian)
   mkdir build
   cd build
   cmake ..
