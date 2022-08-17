@@ -91,7 +91,7 @@ double atofs(char *s)
 
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
-static int llbuf_num = 2048;
+static int llbuf_num = 500;
 static int ignore_f_command = 0;
 static int ignore_s_command = 0;
 
@@ -634,7 +634,7 @@ void usage(void)
 		"\t-A Auto Gain Control setpoint (default: -30 / values -1 to -69 / other disabled)\n"
 		"\t-G Auto Gain Control speed in Hz (default: 100 / values 0/5/50/100) - Sets overloading adjustment-speed\n"
 		"\t-N NoiseShaping* disable (default: enabled)\n"
-		"\t-n Max number of linked list buffers to keep (default: 512)\n"
+		"\t-n Max number of linked list buffers to keep (default: 500)\n"
 		"\t-v Verbose output (debug) enable* (default: disabled)\n\n"
 		"\t* Marked options are switches they toggle on/off\n"
 		"\t Tip1 - start with -l 0 level correction first, if too much signal try -l 1, -l 2 etc, most simple way start receiving correctly\n"
