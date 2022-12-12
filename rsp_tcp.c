@@ -137,10 +137,10 @@ static int agctype = 100; // just the number of above
 
 static void sighandler(int signum)
 {
-	fprintf(stderr, "Signal (%d) caught, ask for exit!\n", signum);
-	// exit(signum); // can be used to force ctrl-c instant
-	do_exit = 1;
-	pthread_cond_signal(&cond);
+        fprintf(stderr, "Signal (%d) caught, ask for exit!\n", signum);
+        // exit(signum); // can be used to force ctrl-c instant
+        do_exit = 1;
+        pthread_cond_signal(&cond);
 }
 
 void gc_callback(unsigned int gRdB, unsigned int lnaGRdB, void* cbContext )
@@ -958,10 +958,9 @@ int main(int argc, char **argv)
 			free(prev->data);
 			free(prev);
 		}
-
+		if (!ctrlC_exit) do_exit = 0;
 		global_numq = 0;
 
-		do_exit = 0;
 	}
 
 out:
