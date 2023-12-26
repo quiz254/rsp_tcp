@@ -499,6 +499,14 @@ static int set_sample_rate(uint32_t sr)
 	if (r != mir_sdr_Success) {
 		printf("set sample rate error (%d)\n", r);
 	}
+
+	if (enable_biastee == 1) {
+                // set Bias-T
+		if (devModel == 2) mir_sdr_RSPII_BiasTControl(enable_biastee);
+        	else if (devModel == 3) mir_sdr_rsp1a_BiasT(enable_biastee);
+                else if (devModel == 255) mir_sdr_rspDuo_BiasT(enable_biastee);
+	}
+
 	return r;
 }
 
@@ -944,10 +952,6 @@ int main(int argc, char **argv)
 	        mir_sdr_SetDcMode(4, 1);
 	        // set the time period over which the DC offset is tracked when in one shot mode.
 	        mir_sdr_SetDcTrackTime(10);
-	        // set Bias-T
-	        mir_sdr_RSPII_BiasTControl(enable_biastee);
-	        mir_sdr_rsp1a_BiasT(enable_biastee);
-	        mir_sdr_rspDuo_BiasT(enable_biastee);
 	        // set Notch
 	        mir_sdr_RSPII_RfNotchEnable(enable_broadcastnotch);
 	        mir_sdr_rsp1a_DabNotch(enable_dabnotch);
