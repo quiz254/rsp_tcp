@@ -109,7 +109,7 @@ static volatile int ctrlC_exit = 0;
 #define MAX_DECIMATION_FACTOR 32
 
 static int devModel = 0;
-uint64_t devSerial = 0;
+static char* devSerial = "";
 static int bwType = DEFAULT_BW_T;
 static int agcSetPoint = DEFAULT_AGC_SETPOINT;
 static int gainReduction = DEFAULT_GAIN_REDUCTION;
@@ -123,7 +123,6 @@ static int edgefilter = 0;
 static int noiseshape = 1; //Noiseshape 0=off / 1=on
 
 ////waardes
-static int devAvail = 0;
 static int device = 0;
 static int antenna = 0;
 static int enable_biastee = 0;
@@ -629,7 +628,7 @@ void usage(void)
 		"\n\n Usage:\n"
 		"\t-a Listen address (default: 127.0.0.1)\n"
 		"\t-p Listen port (default: 1234)\n"
-		"\t-S Serialnumber (default:0)\n"
+		"\t-S Device serial number (-S list for a list)\n"
 		"\t-d RSP device to use (default: 1, first found)\n"
 		"\t-P Antenna Port select (0/1/2, default: 0, Port A)\n"
 		"\t-r Gain reduction (default: 34  / values 20-59) - Not set in websdr.cfg see tips\n"
@@ -681,13 +680,13 @@ int main(int argc, char **argv)
 
 	struct sigaction sigact, sigign;
 
-	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:l:P:q:A:S:G:W:NTvDBRE")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:r:f:s:n:d:l:P:q:A:G:S:W:NTvDBRE")) != -1) {
 		switch (opt) {
 		case 'd':
 			device = atoi(optarg) - 1;
 			break;
 		case 'S':
-			devSerial = atofs(optarg);
+			devSerial = optarg;
 			break;
                 case 'P':
 			antenna = atoi(optarg);
@@ -760,12 +759,12 @@ int main(int argc, char **argv)
 	if (gainReduction < 20 || gainReduction > 59) gainReduction = DEFAULT_GAIN_REDUCTION;
 	if (wideband < 0 || wideband > 2 ) wideband = 2;
 
-	printf("\nrsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org - NoiseShaping by Jan PA0SIM - Serialnumber by Nanko PA0NVY"
+	printf("\nrsp_tcp, an I/Q spectrum server for SDRPlay receivers - modified by Bas ON5HB for websdr.org - NoiseShaping by Jan PA0SIM - Serialnumber by Nanko PA0NVY "
         	#ifdef SERVER_VERSION
                         "VERSION "SERVER_VERSION
                 #endif
                 );
-                printf("\nuse --help for options and explenation\n\n");
+                printf("\nuse --help for options and explanation\n\n");
 
 	// check API version
 	r = mir_sdr_ApiVersion(&ver);
@@ -786,31 +785,27 @@ int main(int argc, char **argv)
                 fprintf(stderr, "Failed to get device list (%d)\n", r);
                 exit(1);
         }
-
+        if (strcmp(devSerial,"list") == 0) {
         for (i = 0; i < numDevs; i++) {
-        printf("Devices Available: %d, Serial: %ld\n", i+1, atol(devices[i].SerNo));
-                if (devices[i].devAvail == 1) {
-                        devAvail++;
-                }
+            printf("Device: %d, Serial: %s Available: %d\n", i, devices[i].SerNo,devices[i].devAvail);
         }
-
-        if (devAvail == 0) {
-                fprintf(stderr, "no RSP devices available.\n");
-                exit(1);
+	exit(1);
+        }
+        else {
+        for (i = 0; i < numDevs; i++) {
+            if (strcmp(devSerial,devices[i].SerNo) == 0) {
+            device = i;
+            printf("Device selected: %d, Serial: %s\n", i, devices[i].SerNo);
+            }
+        }
         }
 
         if (devices[device].devAvail != 1) {
-	printf("Detected RSP Avail != 0 %d\n", devices[device].devAvail);
-	fprintf(stderr, "RSP selected (%d) is not available.\n", (device + 1));
+        printf("Detected RSP Avail != 0 %d\n", devices[device].devAvail);
+        fprintf(stderr, "RSP selected (%d) is not available.\n", (device + 1));
                 exit(1);
         }
 
-        for (i = 0; i < numDevs; i++) {
-            if (devSerial == atol(devices[i].SerNo)) {
-            device = i;
-            printf("Device Selected: %d, Serial: %ld\n", i, atol(devices[device].SerNo));
-            }
-        }
         r = mir_sdr_SetDeviceIdx(device);
         if (r != mir_sdr_Success) {
                 fprintf(stderr, "Failed to set device index (%d)\n", r);
@@ -824,16 +819,11 @@ int main(int argc, char **argv)
 	else if (devModel == 3) printf("detected RSP model (hw version %d) = RSPduo\n", devModel);
 	else if (devModel == 255) printf("detected RSP model (hw version %d) = RSP1A\n", devModel);
 	else printf("detected RSP model (hw version %d) = Unknown\n", devModel);
-/*	printf("Detected RSP Serial %s\n", devices[device].SerNo); */
-/*	printf("Detected RSP Name %s\n", devices[device].DevNm); */
-/*	printf("Detected RSP hwVer %d\n", devices[device].hwVer); */
-	printf("Detected RSP Avail %d\n", devices[device].devAvail);
-	if (devSerial != 0) printf("User provided Serial %ld\n", devSerial);
-	printf("Detected RSP Serial %ld\n", atol(devices[device].SerNo));
-	if (devSerial != 0)
-	{
-	if (devSerial != atol(devices[device].SerNo)) printf("Serials don't match \n");
-	}
+/*	printf("Selected RSP Serial %s\n", devices[device].SerNo); 
+	printf("Selected RSP Name %s\n", devices[device].DevNm); 
+	printf("Selected RSP hwVer %d\n", devices[device].hwVer); 
+	printf("Selected RSP Avail %d\n", devices[device].devAvail); 
+	printf("Selected RSP Serial %s\n", devices[device].SerNo); */
 	
 	// select antenna
 	switch (antenna) {
