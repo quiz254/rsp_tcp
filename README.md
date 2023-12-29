@@ -7,6 +7,9 @@
 ## An rtl_tcp compatible IQ server for the RSP range of SDRPlay SDR but does NOT support the RSPdx
 ## This driver has been tested and works perfect with the RSP1A and RSP2
 
+PLEASE DO NOT CONTACT ME ABOUT CLONES, I DO NOT SUPPORT THEM, YOU ARE ON YOUR OWN IF YOU BUY THOSE.
+THEY HURT SDRPLAY AS A COMPANY.
+
 rsp_tcp is a direct port of [rtl_tcp](https://github.com/osmocom/rtl-sdr) for the RSP range of [SDRPlay SDR](https://www.sdrplay.com/).
 
 As the rtl_tcp protocol is only 8 bits IQ but uses the 14bit range.
